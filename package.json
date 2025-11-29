@@ -1,6 +1,6 @@
 {
 	"name": "omnikernel",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"type": "module",
 	"description": "The ultimate modular architecture that streamlines EVERYTHING.",
 	"types": "dist/index.d.mts",
@@ -19,8 +19,13 @@
 		}
 	},
 	"scripts": {
-		"build": "tsdown",
-		"lint": "eslint ."
+		"build": "vite build",
+		"test": "vitest",
+		"test:ci": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"check:type": "tsc --noEmit",
+		"check:lint": "biome check --write",
+		"check": "pnpm check:type && pnpm check:lint"
 	},
 	"repository": {
 		"type": "git",
@@ -44,12 +49,13 @@
 	"license": "Apache-2.0",
 	"packageManager": "pnpm@10.18.3",
 	"devDependencies": {
-		"@eslint/js": "^9.39.1",
-		"eslint": "^9.39.1",
-		"eslint-config-prettier": "^10.1.8",
-		"jiti": "^2.6.1",
-		"tsdown": "^0.16.4",
+		"@biomejs/biome": "2.3.7",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@types/node": "^24.10.1",
+		"@vitest/coverage-v8": "4.0.13",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.46.4"
+		"vite": "^7.2.4",
+		"vite-plugin-dts": "^4.5.4",
+		"vitest": "^4.0.13"
 	}
 }
