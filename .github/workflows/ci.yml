@@ -23,6 +23,9 @@ jobs:
         with:
           fetch-depth: 0  # Required for diff checks
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4.2.0
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
@@ -32,15 +35,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Detect src changes
+      - name: Detect relevant changes
         id: changes
         run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^src/'; then
-            echo "src_changed=true" >> $GITHUB_OUTPUT
+          # Get list of changed files
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+
+          # Check if any changed file is in src/ or test/
+          if echo "$changed_files" | grep -E '^(src|test)/'; then
+            echo "needs_test=true" >> $GITHUB_OUTPUT
           else
-            echo "src_changed=false" >> $GITHUB_OUTPUT
+            echo "needs_test=false" >> $GITHUB_OUTPUT
           fi
-        # Skip for forks on first run (GitHub blocks git diff)
+        # Skip this step for initial fork PRs (no git history access)
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
 
       - name: Run checks

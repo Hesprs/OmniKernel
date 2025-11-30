@@ -1,4 +1,4 @@
-# OmniKernel v0.0.2
+# OmniKernel v0.1.0
 
 **Description**: `OmniKernel` is a versatile and powerful kernel designed to provide a unified interface for managing and interacting with various types of modules, hooks, and functions, by maintaining a dynamic function-based and DOM-like `facade` and an underlying `facadeMap`. It offers a comprehensive set of features to enhance modularity, extensibility, and maintainability in your applications.
 
