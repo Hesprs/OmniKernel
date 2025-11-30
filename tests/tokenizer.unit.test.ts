@@ -6,19 +6,15 @@ const samplePreserved = { preserved: true };
 const sampleFunc = () => {};
 
 test('single value into tokenizer', () => {
-	expect(tokenizer('hello')).toEqual([{ label: 'default:store', path: 'root', value: 'hello' }]);
-	expect(tokenizer(undefined)).toEqual([
-		{ label: 'default:store', path: 'root', value: undefined },
-	]);
-	expect(tokenizer(1.1)).toEqual([{ label: 'default:store', path: 'root', value: 1.1 }]);
+	expect(tokenizer('hello')).toEqual([{ label: 'default:store', path: 'facade', value: 'hello' }]);
+	expect(tokenizer(undefined)).toEqual([{ label: 'default:store', path: 'facade', value: undefined }]);
+	expect(tokenizer(1.1)).toEqual([{ label: 'default:store', path: 'facade', value: 1.1 }]);
 
 	expect(tokenizer(samplePreserved)).toEqual([
-		{ label: 'preserved', path: 'root', value: samplePreserved },
+		{ label: 'preserved', path: 'facade', value: samplePreserved },
 	]);
 
-	expect(tokenizer(sampleFunc)).toEqual([
-		{ label: 'default:runner', path: 'root', value: sampleFunc },
-	]);
+	expect(tokenizer(sampleFunc)).toEqual([{ label: 'default:runner', path: 'facade', value: sampleFunc }]);
 });
 
 test('nested object into tokenizer', () => {
@@ -36,12 +32,12 @@ test('nested object into tokenizer', () => {
 			},
 		}),
 	).toEqual([
-		{ label: 'preserved', path: 'root.users.current', value: store },
+		{ label: 'preserved', path: 'facade.users.current', value: store },
 		{
 			label: 'preserved',
-			path: 'root.users.trashcan.samplePreserved',
+			path: 'facade.users.trashcan.samplePreserved',
 			value: samplePreserved,
 		},
-		{ label: 'default:store', path: 'root.settings.debug', value: true },
+		{ label: 'default:store', path: 'facade.settings.debug', value: true },
 	]);
 });

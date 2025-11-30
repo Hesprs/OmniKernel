@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest';
+import type { GeneralObject } from '@/declarations';
 import { Hook, OmniKernel } from '@/index';
 
 test('Hook run() executes synchronous functions from facadePosition', () => {
@@ -19,8 +20,8 @@ test('Hook run() executes synchronous functions from facadePosition', () => {
 	expect(func1).toHaveBeenCalled();
 	expect(func2).toHaveBeenCalled();
 
-    expect(func1).toHaveBeenCalledBefore(func2);
-    expect((Kernel.normalize(Kernel.facade) as GeneralObject)._self).toBeInstanceOf(Function);
+	expect(func1).toHaveBeenCalledBefore(func2);
+	expect((Kernel.normalize(Kernel.facade) as GeneralObject)._self).toBeInstanceOf(Function);
 });
 
 test('Hook run() executes asynchronous functions when async meta is true', async () => {

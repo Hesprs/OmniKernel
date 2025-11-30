@@ -1,0 +1,54 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true  # Cancel previous runs for same PR/branch
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Required for diff checks
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: latest
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Detect src changes
+        id: changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^src/'; then
+            echo "src_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "src_changed=false" >> $GITHUB_OUTPUT
+          fi
+        # Skip for forks on first run (GitHub blocks git diff)
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
+
+      - name: Run checks
+        run: pnpm check
+
+      - name: Run tests (src changes or main branch)
+        if: steps.changes.outputs.src_changed == 'true' || github.ref == 'refs/heads/main'
+        run: pnpm test
+
+      - name: Run build
+        run: pnpm build

@@ -1,55 +1,52 @@
 import Runner from '@/elements/runner';
 import Store from '@/elements/store';
 import tokenizer from '@/utilities/tokenizer';
+import type { GeneralFunction, GeneralObject, labelerResult } from './declarations';
 
 export default class OmniKernel {
 	private facadeMap: Map<string, GeneralElement> = new Map();
 	facade = (() => {}) as Facade;
+
+	// register elements recursively
 	register(toRegister: unknown, additionalMeta?: Meta) {
 		const tokens = tokenizer(toRegister);
 		tokens.forEach(token => {
-			const { crumb, name, isRoot } = resolvePath(token.path);
+			const { crumb, name } = resolvePath(token.path);
 			const parentFacade = this.walker(crumb);
 			const element = allocator(token.label, token.value);
-			this.registerAt(parentFacade, element, name, additionalMeta, isRoot);
+			this.registerAt(parentFacade, element, name, additionalMeta);
 		});
 	}
 
-	registerAt(
-		parentFacade: Facade,
-		element: GeneralElement,
-		name?: string,
-		additionalMeta?: Meta,
-		isRoot: boolean = false,
-	) {
-		const id = isRoot ? 'facade' : generateId();
+	// register an element at a given path
+	private registerAt(parentFacade: Facade, element: GeneralElement, name: string, additionalMeta?: Meta) {
+		const id = name === 'facade' ? 'facade' : generateId();
 		const facadeFunction = facadeFunc(id, this.facadeMap);
 
 		if ('facadePosition' in element.meta) element.meta.facadePosition = facadeFunction;
-		if ('entireFacade' in element.meta) element.meta.entireFacade = this.facade;
 		if (additionalMeta) element.meta = { ...element.meta, ...additionalMeta };
+
+		if (name in parentFacade) {
+			transplant(facadeFunction, parentFacade[name]);
+			this.facadeMap.delete(parentFacade[name].name); // delete old element
+		}
 		this.facadeMap.set(id, element);
-
-		if (name && name in parentFacade) transplant(facadeFunction, parentFacade[name]);
-		else if (!name) transplant(facadeFunction, parentFacade);
-
-		if (isRoot) this.facade = facadeFunction;
-		else if (!name) parentFacade = facadeFunction;
-		else parentFacade[name] = facadeFunction;
+		parentFacade[name] = facadeFunction;
 
 		if (element.meta.connectedCallback) element.meta.connectedCallback();
 	}
 
+	// walk the tree to return the parent facade
 	private walker(crumb: Array<string>) {
-		let currentBranch = this.facade;
+		let currentBranch = this as unknown as Facade;
 		crumb.forEach(crumb => {
-			if (!(crumb in currentBranch))
-				currentBranch[crumb] = facadeFunc('placeholder', this.facadeMap);
+			if (!(crumb in currentBranch)) currentBranch[crumb] = facadeFunc('placeholder', this.facadeMap);
 			currentBranch = currentBranch[crumb];
 		});
 		return currentBranch;
 	}
 
+	// convert facade to plain object
 	normalize(toNormalize: Facade) {
 		let self: unknown;
 		const children: GeneralObject = {};
@@ -60,9 +57,9 @@ export default class OmniKernel {
 			if (!node) {
 				if (toNormalize.name !== 'facade') throw new Error(`Node ${toNormalize.name} not found.`);
 			} else {
-			if (node.meta.normalizeCallback) self = node.meta.normalizeCallback();
-			else if ('normalize' in node.meta) self = node.meta.normalize;
-			else self = node;
+				if (node.meta.normalizeCallback) self = node.meta.normalizeCallback();
+				else if ('normalize' in node.meta) self = node.meta.normalize;
+				else self = node;
 			}
 		}
 
@@ -77,12 +74,14 @@ export default class OmniKernel {
 	}
 }
 
+// copy children from old to new
 function transplant(newOne: Facade, oldOne: Facade) {
 	Object.keys(oldOne).forEach(key => {
 		newOne[key] = oldOne[key];
 	});
 }
 
+// instantiate elements to be merged
 function allocator(label: labelerResult, value: unknown) {
 	switch (label) {
 		case 'preserved':
@@ -94,6 +93,7 @@ function allocator(label: labelerResult, value: unknown) {
 	}
 }
 
+// generate random id used in facadeMap
 function generateId(length = 10) {
 	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 	const array = new Uint8Array(length);
@@ -101,17 +101,17 @@ function generateId(length = 10) {
 	return Array.from(array, byte => chars[byte % chars.length]).join('');
 }
 
+// separate path into crumb and name
 function resolvePath(path: string) {
 	const crumb = path.split('.');
-	if (crumb[0] === 'root') crumb.shift();
-	const name = crumb.pop();
+	const name = crumb.pop() as string;
 	return {
 		crumb,
 		name,
-		isRoot: !crumb[0] && !name,
 	};
 }
 
+// create facade function
 function facadeFunc(funcName: string, facadeMap: Map<string, GeneralElement>) {
 	const middleware = {
 		[funcName](...args: Array<unknown>) {

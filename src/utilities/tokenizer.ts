@@ -1,8 +1,10 @@
+import type { GeneralObject, labelerResult } from '../declarations';
+
 function isObject(toCheck: unknown) {
 	return typeof toCheck === 'object' && toCheck !== null && !Array.isArray(toCheck);
 }
 
-export default function tokenizer(toTokenize: unknown, currentPath: string = 'root') {
+export default function tokenizer(toTokenize: unknown, currentPath: string = 'facade') {
 	let result: Array<{ label: labelerResult; path: string; value: unknown }> = [];
 	function push(label: ReturnType<typeof labeler>, path: string, value: unknown) {
 		if (label !== 'placeholder') result.push({ label, path, value });

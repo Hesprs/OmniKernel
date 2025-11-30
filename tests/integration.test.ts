@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { OmniKernel, Store } from '@';
+import type { GeneralObject } from '@/declarations';
 
 test('register a Store element', () => {
 	const Kernel = new OmniKernel();
@@ -59,7 +60,7 @@ test('register a nested object structure', () => {
 	});
 });
 
-test('transplant the a branch facade', () => {
+test('transplant a branch facade', () => {
 	const Kernel = new OmniKernel();
 	Kernel.register({
 		user: {
@@ -69,7 +70,7 @@ test('transplant the a branch facade', () => {
 	});
 	expect(Kernel.facade.user.name).toBe('placeholder');
 
-	Kernel.register({ user: 'user' });	
+	Kernel.register({ user: 'user' });
 	expect(Kernel.normalize(Kernel.facade)).toEqual({
 		user: {
 			_self: 'user',
@@ -110,18 +111,24 @@ test('register a Store with options', () => {
 	consoleWarn.mockRestore();
 });
 
-test('handle connectedCallback when registering', () => {
+test('handle context injection and connectedCallback when registering', () => {
 	const Kernel = new OmniKernel();
+	Kernel.register('context');
 
-	const callback = vi.fn();
-	const elementWithCallback: GeneralElement = {
-		preserved: true,
-		meta: {
+	class elementWithCallback implements GeneralElement {
+		preserved = true;
+		CCB = vi.fn();
+		meta = {
 			signature: 'test:element',
-			connectedCallback: callback,
-		},
-	};
+			connectedCallback: this.CCB,
+		};
+	}
 
-	Kernel.register(elementWithCallback);
-	expect(callback).toBeCalled();
+	const element = new elementWithCallback();
+
+	Kernel.register({
+		test: element,
+	});
+	expect(element.CCB).toBeCalledWith();
+	expect(Kernel.facade.test()).toEqual(Kernel.normalize(Kernel.facade.test));
 });

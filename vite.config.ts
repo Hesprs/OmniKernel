@@ -2,7 +2,6 @@
 import { resolve } from 'node:path';
 import terser from '@rollup/plugin-terser';
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 
 export default defineConfig({
 	build: {
@@ -27,11 +26,5 @@ export default defineConfig({
 			'@': resolve(__dirname, 'src/'),
 		},
 	},
-	plugins: [
-		dts({
-			insertTypesEntry: true, // Auto-adds "types" field to package.json
-			include: ['src'], // Source files to process
-		}),
-	],
 	test: {},
 });

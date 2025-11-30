@@ -15,7 +15,7 @@ export default class Hook implements GeneralElement {
 				func();
 			});
 		}
-	}
+	};
 	meta = {
 		signature: 'default:hook',
 		facade: this.run,

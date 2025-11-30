@@ -1,5 +1,7 @@
+import type { GeneralFunction } from '@/declarations';
+
 export default class Runner implements GeneralElement {
-	run: GeneralFunction = () => {};
+	run: GeneralFunction;
 	constructor(func: GeneralFunction, options?: { immutable?: boolean; silent?: boolean }) {
 		this.run = func;
 		if (options) this.meta = { ...this.meta, ...options };

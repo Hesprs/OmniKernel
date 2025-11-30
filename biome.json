@@ -7,7 +7,7 @@
 		"formatWithErrors": false,
 		"indentWidth": 4,
 		"lineEnding": "lf",
-		"lineWidth": 100,
+		"lineWidth": 110,
 		"bracketSameLine": false,
 		"expand": "auto",
 		"useEditorconfig": true

@@ -1,27 +1,23 @@
 {
 	"name": "omnikernel",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"type": "module",
 	"description": "The ultimate modular architecture that streamlines EVERYTHING.",
-	"types": "dist/index.d.mts",
+	"types": "dist/types/index.d.ts",
 	"main": "dist/index.cjs",
-	"module": "dist/index.mjs",
+	"module": "dist/index.js",
 	"exports": {
 		".": {
-			"import": {
-				"types": "./dist/index.d.mts",
-				"default": "./dist/index.mjs"
-			},
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			}
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
 		}
 	},
 	"scripts": {
-		"build": "vite build",
-		"test": "vitest",
-		"test:ci": "vitest run",
+		"build": "vite build && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+		"test": "pnpm test:smoke && pnpm test:unit && pnpm test:integration",
+		"test:unit": "vitest run unit",
+		"test:smoke": "vitest run smoke",
+		"test:integration": "vitest run integration",
 		"test:coverage": "vitest run --coverage",
 		"check:type": "tsc --noEmit",
 		"check:lint": "biome check --write",
@@ -53,9 +49,9 @@
 		"@rollup/plugin-terser": "^0.4.4",
 		"@types/node": "^24.10.1",
 		"@vitest/coverage-v8": "4.0.13",
+		"tsc-alias": "^1.8.16",
 		"typescript": "^5.9.3",
 		"vite": "^7.2.4",
-		"vite-plugin-dts": "^4.5.4",
-		"vitest": "^4.0.13"
+		"vitest": "^4.0.14"
 	}
 }

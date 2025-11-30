@@ -14,4 +14,5 @@ test('instantiate OmniKernel', () => {
 	expect(Kernel).toHaveProperty('normalize');
 
 	expect(Kernel.facade).toBeInstanceOf(Function);
+	expect(Kernel.facade()).toBeUndefined();
 });
