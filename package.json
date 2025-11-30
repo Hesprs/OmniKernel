@@ -48,7 +48,7 @@
 		"@biomejs/biome": "2.3.8",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@types/node": "^24.10.1",
-		"@vitest/coverage-v8": "4.0.13",
+		"@vitest/coverage-v8": "4.0.14",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.9.3",
 		"vite": "^7.2.4",
