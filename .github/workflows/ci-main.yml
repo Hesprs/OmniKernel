@@ -1,9 +1,6 @@
 name: CI Pipeline
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
 
@@ -19,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Required for diff checks
 
@@ -47,15 +44,19 @@ jobs:
           else
             echo "needs_test=false" >> $GITHUB_OUTPUT
           fi
-        # Skip this step for initial fork PRs (no git history access)
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
 
       - name: Run checks
         run: pnpm check
 
-      - name: Run tests (src changes or main branch)
-        if: steps.changes.outputs.src_changed == 'true' || github.ref == 'refs/heads/main'
-        run: pnpm test
+      - name: Run coverage tests (src or test changes)
+        if: steps.changes.outputs.needs_test == 'true'
+        run: pnpm test:coverage
+
+      - name: Upload coverage reports to Codecov
+        if: steps.changes.outputs.needs_test == 'true'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Run build
         run: pnpm build
