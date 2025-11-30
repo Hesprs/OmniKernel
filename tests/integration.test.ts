@@ -111,7 +111,7 @@ test('register a Store with options', () => {
 	consoleWarn.mockRestore();
 });
 
-test('handle context injection and connectedCallback when registering', () => {
+test('handle connectedCallback when registering', () => {
 	const Kernel = new OmniKernel();
 	Kernel.register('context');
 
