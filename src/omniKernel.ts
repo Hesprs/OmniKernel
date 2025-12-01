@@ -5,7 +5,7 @@ import type { GeneralFunction, GeneralObject, labelerResult } from './declaratio
 
 export default class OmniKernel {
 	private facadeMap: Map<string, GeneralElement> = new Map();
-	facade = (() => {}) as Facade;
+	facade = facadeFunc('facade', this.facadeMap);
 
 	// register elements recursively
 	register(toRegister: unknown, additionalMeta?: Meta) {
@@ -20,18 +20,17 @@ export default class OmniKernel {
 
 	// register an element at a given path
 	private registerAt(parentFacade: Facade, element: GeneralElement, name: string, additionalMeta?: Meta) {
-		const id = name === 'facade' ? 'facade' : generateId();
-		const facadeFunction = facadeFunc(id, this.facadeMap);
-
-		if ('facadePosition' in element.meta) element.meta.facadePosition = facadeFunction;
 		if (additionalMeta) element.meta = { ...element.meta, ...additionalMeta };
 
-		if (name in parentFacade) {
-			transplant(facadeFunction, parentFacade[name]);
-			this.facadeMap.delete(parentFacade[name].name); // delete old element
+		// replace old element
+		if (name in parentFacade) this.facadeMap.set(parentFacade[name].name, element);
+		else {
+			// create new facade and element
+			const id = generateId();
+			this.facadeMap.set(id, element);
+			parentFacade[name] = facadeFunc(id, this.facadeMap);
 		}
-		this.facadeMap.set(id, element);
-		parentFacade[name] = facadeFunction;
+		injector(element, { thisFacade: parentFacade[name], parentFacade });
 
 		if (element.meta.connectedCallback) element.meta.connectedCallback();
 	}
@@ -40,7 +39,7 @@ export default class OmniKernel {
 	private walker(crumb: Array<string>) {
 		let currentBranch = this as unknown as Facade;
 		crumb.forEach(crumb => {
-			if (!(crumb in currentBranch)) currentBranch[crumb] = facadeFunc('placeholder', this.facadeMap);
+			if (!(crumb in currentBranch)) currentBranch[crumb] = facadeFunc(generateId(), this.facadeMap);
 			currentBranch = currentBranch[crumb];
 		});
 		return currentBranch;
@@ -54,9 +53,7 @@ export default class OmniKernel {
 		// self
 		if (toNormalize.name !== 'placeholder') {
 			const node = this.facadeMap.get(toNormalize.name);
-			if (!node) {
-				if (toNormalize.name !== 'facade') throw new Error(`Node ${toNormalize.name} not found.`);
-			} else {
+			if (node) {
 				if (node.meta.normalizeCallback) self = node.meta.normalizeCallback();
 				else if ('normalize' in node.meta) self = node.meta.normalize;
 				else self = node;
@@ -74,11 +71,19 @@ export default class OmniKernel {
 	}
 }
 
-// copy children from old to new
-function transplant(newOne: Facade, oldOne: Facade) {
-	Object.keys(oldOne).forEach(key => {
-		newOne[key] = oldOne[key];
-	});
+// copy give context to an element when added into facade
+function injector(
+	element: GeneralElement,
+	context: {
+		thisFacade: Facade;
+		parentFacade: Facade;
+	},
+) {
+	if ('thisFacade' in element.meta) element.meta.thisFacade = context.thisFacade;
+	if ('parentFacade' in element.meta) {
+		if (context.thisFacade.name !== 'facade') element.meta.parentFacade = context.parentFacade;
+		else if (!element.meta.silent) console.warn(`[OmniKernel] Root facade cannot have a parent facade.`);
+	}
 }
 
 // instantiate elements to be merged
@@ -115,12 +120,11 @@ function resolvePath(path: string) {
 function facadeFunc(funcName: string, facadeMap: Map<string, GeneralElement>) {
 	const middleware = {
 		[funcName](...args: Array<unknown>) {
-			if (funcName === 'placeholder') {
-				console.warn(`OmniKernel: ${funcName} is a placeholder function.`);
+			const node = facadeMap.get(funcName);
+			if (!node) {
+				console.warn(`[OmniKernel] ${funcName} is a placeholder facade.`);
 				return;
 			}
-			const node = facadeMap.get(funcName);
-			if (!node) throw new Error(`Middleware ${funcName} not found.`);
 			if (node.meta.facade) return node.meta.facade(...args);
 			else return node;
 		},

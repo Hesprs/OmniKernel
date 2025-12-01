@@ -2,13 +2,13 @@ import { expect, test, vi } from 'vitest';
 import type { GeneralObject } from '@/declarations';
 import { Hook, OmniKernel } from '@/index';
 
-test('Hook run() executes synchronous functions from facadePosition', () => {
+test('Hook run() executes synchronous functions from thisFacade', () => {
 	const Kernel = new OmniKernel();
 	const hook = new Hook();
 	const func1 = vi.fn();
 	const func2 = vi.fn();
 
-	// Mock the facadePosition to contain our test functions
+	// Mock the thisFacade to contain our test functions
 	Kernel.register(hook);
 	Kernel.register({
 		1: func1,
@@ -17,8 +17,8 @@ test('Hook run() executes synchronous functions from facadePosition', () => {
 
 	Kernel.facade();
 
-	expect(func1).toHaveBeenCalled();
-	expect(func2).toHaveBeenCalled();
+	expect(func1).toBeCalled();
+	expect(func2).toBeCalled();
 
 	expect(func1).toHaveBeenCalledBefore(func2);
 	expect((Kernel.normalize(Kernel.facade) as GeneralObject)._self).toBeInstanceOf(Function);
@@ -41,6 +41,6 @@ test('Hook run() executes asynchronous functions when async meta is true', async
 
 	Kernel.facade();
 
-	expect(asyncFunc1).toHaveBeenCalled();
-	expect(asyncFunc2).toHaveBeenCalled();
+	expect(asyncFunc1).toBeCalled();
+	expect(asyncFunc2).toBeCalled();
 });

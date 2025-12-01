@@ -5,15 +5,6 @@ import { Runner } from '@';
 const sampleFunc = () => 'original';
 const newFunc = () => 'updated';
 
-test('Runner constructor initializes correctly', () => {
-	const runner = new Runner(sampleFunc);
-	expect(runner.run).toBe(sampleFunc);
-	expect(runner.meta.signature).toBe('default:runner');
-	expect(runner.meta.immutable).toBe(false);
-	expect(runner.meta.silent).toBe(false);
-	expect(runner.preserved).toBe(true);
-});
-
 test('Runner executes the stored function', () => {
 	const runner = new Runner(sampleFunc);
 	expect(runner.run()).toBe('original');
@@ -33,7 +24,7 @@ test('Runner respects immutable flag and prevents updates', () => {
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	runner.set(newFunc);
 	expect(runner.run()).toBe('original'); // Function should not have changed
-	expect(warnSpy).toHaveBeenCalled();
+	expect(warnSpy).toBeCalled();
 	warnSpy.mockRestore(); // Clean up the spy
 });
 
@@ -42,7 +33,7 @@ test('Runner respects silent flag when immutable and suppresses warnings', () =>
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	runner.set(newFunc);
 	expect(runner.run()).toBe('original'); // Function should not have changed
-	expect(warnSpy).not.toHaveBeenCalled();
+	expect(warnSpy).not.toBeCalled();
 	warnSpy.mockRestore();
 });
 

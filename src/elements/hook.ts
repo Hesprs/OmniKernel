@@ -5,7 +5,7 @@ export default class Hook implements GeneralElement {
 		if (options) this.meta = { ...this.meta, ...options };
 	}
 	run = () => {
-		const children = this.meta.facadePosition;
+		const children = this.meta.thisFacade;
 		if (this.meta.async) {
 			Object.values(children).forEach(async func => {
 				await func();
@@ -20,7 +20,7 @@ export default class Hook implements GeneralElement {
 		signature: 'default:hook',
 		facade: this.run,
 		normalize: this.run,
-		facadePosition: dummyFacade,
+		thisFacade: dummyFacade,
 		async: false,
 	};
 	preserved = true;

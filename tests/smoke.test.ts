@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { OmniKernel } from '@';
 
 test('instantiate OmniKernel', () => {
@@ -14,5 +14,8 @@ test('instantiate OmniKernel', () => {
 	expect(Kernel).toHaveProperty('normalize');
 
 	expect(Kernel.facade).toBeInstanceOf(Function);
+	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	expect(Kernel.facade()).toBeUndefined();
+	expect(warnSpy).toBeCalled();
+	warnSpy.mockRestore();
 });

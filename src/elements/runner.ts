@@ -8,7 +8,7 @@ export default class Runner implements GeneralElement {
 	}
 	set(newFunc: GeneralFunction) {
 		if (this.meta.immutable) {
-			if (!this.meta.silent) console.warn('Store failed: the value cannot be changed.');
+			if (!this.meta.silent) console.warn('[OmniKernel] Runner function cannot be changed.');
 			return;
 		}
 		this.run = newFunc;

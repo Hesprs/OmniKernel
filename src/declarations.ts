@@ -21,7 +21,8 @@ declare global {
 		normalize?: unknown;
 		normalizeCallback?: GeneralFunction;
 		silent?: boolean;
-		facadePosition?: Facade;
+		thisFacade?: Facade;
+		parentFacade?: Facade;
 		connectedCallback?: GeneralFunction;
 		[key: Indexable]: unknown;
 	};

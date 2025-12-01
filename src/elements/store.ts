@@ -6,7 +6,7 @@ export default class Store implements GeneralElement {
 	}
 	set(toSet: unknown) {
 		if (this.meta.immutable) {
-			if (!this.meta.silent) console.warn('Store failed: the value cannot be changed.');
+			if (!this.meta.silent) console.warn('[OmniKernel] Store value cannot be changed.');
 			return;
 		}
 		this.value = toSet;

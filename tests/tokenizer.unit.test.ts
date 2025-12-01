@@ -15,6 +15,10 @@ test('single value into tokenizer', () => {
 	]);
 
 	expect(tokenizer(sampleFunc)).toEqual([{ label: 'default:runner', path: 'facade', value: sampleFunc }]);
+
+	expect(tokenizer(['Hello', 'World'])).toEqual([
+		{ label: 'default:store', path: 'facade', value: ['Hello', 'World'] },
+	]);
 });
 
 test('nested object into tokenizer', () => {

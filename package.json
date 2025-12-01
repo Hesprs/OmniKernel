@@ -14,13 +14,11 @@
 	},
 	"scripts": {
 		"build": "vite build && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-		"test": "pnpm test:smoke && pnpm test:unit && pnpm test:integration",
-		"test:unit": "vitest run unit",
-		"test:smoke": "vitest run smoke",
-		"test:integration": "vitest run integration",
+		"test": "vitest run",
+		"lint": "biome check --write",
 		"test:coverage": "vitest run --coverage",
 		"check:type": "tsc --noEmit",
-		"check:lint": "biome check --write",
+		"check:lint": "biome check",
 		"check": "pnpm check:type && pnpm check:lint"
 	},
 	"repository": {
@@ -31,13 +29,7 @@
 	"bugs": {
 		"url": "https://github.com/Hesprs/OmniKernel/issues"
 	},
-	"keywords": [
-		"Architecture",
-		"Modular",
-		"Microkernel",
-		"IPC",
-		"TypeScript"
-	],
+	"keywords": ["Architecture", "Modular", "Microkernel", "IPC", "TypeScript"],
 	"author": {
 		"name": "Hēsperus",
 		"email": "hesprs@outlook.com"

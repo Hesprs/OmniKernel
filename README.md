@@ -11,4 +11,4 @@
 - [ ] write doc.
 - [ ] support `noChild` flag and `addChild` meta method.
 - [ ] add `delete` helper method to main class.
-- [ ] create `reactive` element.
+- [x] create `reactive` element.
