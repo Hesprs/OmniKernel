@@ -43,7 +43,7 @@
 		"@vitest/coverage-v8": "4.0.14",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.9.3",
-		"vite": "^7.2.4",
+		"vite": "^7.2.6",
 		"vitest": "^4.0.14"
 	}
 }
