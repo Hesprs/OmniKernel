@@ -20,11 +20,10 @@ export default class OmniKernel {
 
 	// register an element at a given path
 	private registerAt(parentFacade: Facade, element: GeneralElement, name: string, additionalMeta?: Meta) {
-
 		if (additionalMeta) element.meta = { ...element.meta, ...additionalMeta };
 
 		// replace old element
-		if (name in parentFacade) this.facadeMap.set(parentFacade[name].name, element); 
+		if (name in parentFacade) this.facadeMap.set(parentFacade[name].name, element);
 		else {
 			// create new facade and element
 			const id = generateId();
@@ -73,10 +72,13 @@ export default class OmniKernel {
 }
 
 // copy give context to an element when added into facade
-function injector(element: GeneralElement, context: {
-	thisFacade: Facade,
-	parentFacade: Facade,
-}) {
+function injector(
+	element: GeneralElement,
+	context: {
+		thisFacade: Facade;
+		parentFacade: Facade;
+	},
+) {
 	if ('thisFacade' in element.meta) element.meta.thisFacade = context.thisFacade;
 	if ('parentFacade' in element.meta) {
 		if (context.thisFacade.name !== 'facade') element.meta.parentFacade = context.parentFacade;
