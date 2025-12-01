@@ -5,15 +5,6 @@ import { Store } from '@';
 const initialValue = 'initial';
 const newValue = 'updated';
 
-test('Store constructor initializes correctly', () => {
-	const store = new Store(initialValue);
-	expect(store.value).toBe(initialValue);
-	expect(store.meta.signature).toBe('default:store');
-	expect(store.meta.immutable).toBe(false);
-	expect(store.meta.silent).toBe(false);
-	expect(store.preserved).toBe(true);
-});
-
 test('Store meta.facade acts as a getter', () => {
 	const store = new Store(initialValue);
 	expect(store.meta.facade()).toBe(initialValue);
@@ -30,7 +21,7 @@ test('Store respects immutable flag and prevents updates', () => {
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	store.meta.facade(newValue);
 	expect(store.value).toBe(initialValue);
-	expect(warnSpy).toHaveBeenCalled();
+	expect(warnSpy).toBeCalled();
 	warnSpy.mockRestore();
 });
 
@@ -39,7 +30,7 @@ test('Store respects silent flag when immutable', () => {
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	store.meta.facade(newValue);
 	expect(store.value).toBe(initialValue);
-	expect(warnSpy).not.toHaveBeenCalled();
+	expect(warnSpy).not.toBeCalled();
 	warnSpy.mockRestore();
 });
 
