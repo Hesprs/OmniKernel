@@ -1,3 +1,4 @@
+import { elementMeta } from '@';
 import type { GeneralFunction } from '@/declarations';
 
 export default class Runner implements GeneralElement {
@@ -14,11 +15,10 @@ export default class Runner implements GeneralElement {
 		this.run = newFunc;
 	}
 	meta = {
-		signature: 'default:runner',
-		facade: (...args: Array<unknown>) => this.run(...args),
-		normalizeCallback: () => this.run,
+		...elementMeta,
+		facadeOverride: (...args: Array<unknown>) => this.run(...args),
+		onNormalize: () => this.run,
 		immutable: false,
 		silent: false,
 	};
-	preserved = true;
 }

@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI for Main
 
 on:
   push:
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true  # Cancel previous runs for same PR/branch
 
 jobs:
-  ci:
+  ci-main:
     runs-on: ubuntu-latest
     permissions:
       contents: read
