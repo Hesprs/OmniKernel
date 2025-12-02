@@ -1,4 +1,4 @@
-import { dummyFacade } from '@';
+import { elementMeta } from '@';
 
 export default class Reactive implements GeneralElement {
 	value: unknown = null;
@@ -17,6 +17,7 @@ export default class Reactive implements GeneralElement {
 		this.value = newValue;
 
 		// Trigger the reactive updates
+		if (oldValue === newValue) return; // Prevent update if the same value received
 		const children = this.meta.thisFacade;
 		if (this.meta.async) {
 			Object.values(children).forEach(async func => {
@@ -30,17 +31,14 @@ export default class Reactive implements GeneralElement {
 	}
 
 	meta = {
-		signature: 'default:reactive',
-		facade: (newValue?: unknown) => {
-			if (newValue !== undefined) this.set(newValue);
+		...elementMeta,
+		facadeOverride: (newValue?: unknown) => {
+			if (newValue) this.set(newValue);
 			else return this.value;
 		},
-		normalizeCallback: () => this.value,
-		thisFacade: dummyFacade,
+		onNormalize: () => this.value,
 		async: false,
 		immutable: false,
 		silent: false,
 	};
-
-	preserved = true;
 }

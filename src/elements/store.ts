@@ -1,3 +1,5 @@
+import { elementMeta } from '../utilities';
+
 export default class Store implements GeneralElement {
 	value: unknown = null;
 	constructor(toStore: unknown, options?: { immutable?: boolean; silent?: boolean }) {
@@ -12,14 +14,13 @@ export default class Store implements GeneralElement {
 		this.value = toSet;
 	}
 	meta = {
-		signature: 'default:store',
-		facade: (toStore?: unknown) => {
+		...elementMeta,
+		facadeOverride: (toStore?: unknown) => {
 			if (toStore) this.set(toStore);
 			else return this.value;
 		},
-		normalizeCallback: () => this.value,
+		onNormalize: () => this.value,
 		immutable: false,
 		silent: false,
 	};
-	preserved = true;
 }

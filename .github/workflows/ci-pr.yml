@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI for Pull Requests
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true  # Cancel previous runs for same PR/branch
 
 jobs:
-  ci:
+  ci-pr:
     runs-on: ubuntu-latest
     permissions:
       contents: read
