@@ -1,4 +1,4 @@
-import { dummyFacade } from '@';
+import { elementMeta } from '@';
 
 export default class Hook implements GeneralElement {
 	constructor(options?: { async: boolean }) {
@@ -17,11 +17,9 @@ export default class Hook implements GeneralElement {
 		}
 	};
 	meta = {
-		signature: 'default:hook',
-		facade: this.run,
-		normalize: this.run,
-		thisFacade: dummyFacade,
+		...elementMeta,
+		facadeOverride: this.run,
+		onNormalize: () => this.run,
 		async: false,
 	};
-	preserved = true;
 }

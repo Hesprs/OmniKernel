@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { dummyFacade, OmniKernel, Store } from '@';
+import { elementMeta, OmniKernel, Store } from '@';
 import type { GeneralObject } from '@/declarations';
 
 test('register a Store element', () => {
@@ -94,18 +94,15 @@ test('register a Store with options', () => {
 	consoleWarn.mockRestore();
 });
 
-test('handle connectedCallback and facade injection when registering', () => {
+test('handle onCallback and facade injection when registering', () => {
 	const Kernel = new OmniKernel();
 	Kernel.register('context');
 
 	class TestElement implements GeneralElement {
-		preserved = true;
 		CCB = vi.fn();
 		meta = {
-			signature: 'test:element',
-			connectedCallback: this.CCB,
-			thisFacade: dummyFacade,
-			parentFacade: dummyFacade,
+			...elementMeta,
+			onConnected: this.CCB,
 		};
 	}
 
@@ -123,16 +120,32 @@ test('handle connectedCallback and facade injection when registering', () => {
 	expect(element.CCB).toBeCalledWith();
 	expect(Kernel.facade.test()).toEqual((Kernel.normalize(Kernel.facade.test) as GeneralObject)._self);
 	expect(element.meta.thisFacade.test2()).toEqual(1);
-	expect(element.meta.parentFacade()).toBe('parent');
+	expect((element.meta.parentFacade as Facade)()).toBe('parent');
 
 	// parentFacade update after transplant
 	Kernel.register('parent2');
-	expect(element.meta.parentFacade()).toBe('parent2');
+	expect((element.meta.parentFacade as Facade)()).toBe('parent2');
 
 	// root facade cannot have parent
-	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	Kernel.register(new TestElement());
-	expect(consoleWarn).toBeCalled();
+	const rootElement = new TestElement();
+	Kernel.register(rootElement);
+	expect(rootElement.meta.parentFacade).toBeUndefined();
+});
 
+test('delete a facade', () => {
+	const Kernel = new OmniKernel();
+	Kernel.register({ test: 'test' });
+	Kernel.register({
+		test: {
+			child: 'child',
+		},
+	});
+	expect(Kernel.facade.test).toBeDefined();
+	Kernel.delete(Kernel.facade.test);
+	expect(Kernel.facade.test).toBeUndefined();
+
+	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+	Kernel.delete(Kernel.facade); // cannot delete root facade
+	expect(consoleWarn).toBeCalled();
 	consoleWarn.mockRestore();
 });

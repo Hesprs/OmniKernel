@@ -1,4 +1,7 @@
-export type GeneralFunction = (...args: Array<unknown>) => unknown;
+import type OmniKernel from './omniKernel';
+
+// biome-ignore lint/suspicious/noExplicitAny: flexibility required by design
+export type GeneralFunction = (...args: Array<any>) => any;
 export type GeneralClass = new (...args: Array<unknown>) => unknown;
 export type GeneralObject = Record<Indexable, unknown>;
 export type Indexable = string | number | symbol;
@@ -11,19 +14,25 @@ declare global {
 	}
 
 	interface GeneralElement {
-		preserved: boolean;
-		meta: Meta & { signature: string };
+		meta: Meta & {
+			// must have context
+			Kernel: OmniKernel;
+			thisFacade: Facade;
+			parentFacade: Facade | undefined;
+			name: string;
+		};
 	}
 
 	type Meta = {
-		signature?: string;
-		facade?: GeneralFunction;
-		normalize?: unknown;
-		normalizeCallback?: GeneralFunction;
+		// options
 		silent?: boolean;
-		thisFacade?: Facade;
-		parentFacade?: Facade;
-		connectedCallback?: GeneralFunction;
+
+		// communication with OmniKernel
+		onConnected?: GeneralFunction;
+		onDisconnected?: GeneralFunction;
+		onNormalize?: unknown;
+		facadeOverride?: GeneralFunction;
+
 		[key: Indexable]: unknown;
 	};
 }

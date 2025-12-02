@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
+import { Hook, OmniKernel } from '@';
 import type { GeneralObject } from '@/declarations';
-import { Hook, OmniKernel } from '@/index';
 
 test('Hook run() executes synchronous functions from thisFacade', () => {
 	const Kernel = new OmniKernel();

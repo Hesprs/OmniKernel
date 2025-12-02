@@ -1,25 +1,18 @@
 {
 	"name": "omnikernel",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"type": "module",
 	"description": "The ultimate modular architecture that streamlines EVERYTHING.",
-	"types": "dist/types/index.d.ts",
-	"main": "dist/index.cjs",
-	"module": "dist/index.js",
-	"exports": {
-		".": {
-			"import": "./dist/index.js",
-			"require": "./dist/index.cjs"
-		}
-	},
+	"types": "./dist/types/index.d.ts",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"files": ["./dist"],
 	"scripts": {
 		"build": "vite build && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
 		"test": "vitest run",
 		"lint": "biome check --write",
 		"test:coverage": "vitest run --coverage",
-		"check:type": "tsc --noEmit",
-		"check:lint": "biome check",
-		"check": "pnpm check:type && pnpm check:lint"
+		"check": "tsc --noEmit && biome check"
 	},
 	"repository": {
 		"type": "git",
