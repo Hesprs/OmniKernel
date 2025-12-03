@@ -1,18 +1,19 @@
 import { elementMeta } from '@';
+import type { GeneralArguments } from '@/declarations';
 
 export default class Hook implements GeneralElement {
 	constructor(options?: { async: boolean }) {
 		if (options) this.meta = { ...this.meta, ...options };
 	}
-	run = () => {
+	run = (...args: GeneralArguments) => {
 		const children = this.meta.thisFacade;
 		if (this.meta.async) {
 			Object.values(children).forEach(async func => {
-				await func();
+				await func(...args);
 			});
 		} else {
 			Object.values(children).forEach(func => {
-				func();
+				func(...args);
 			});
 		}
 	};

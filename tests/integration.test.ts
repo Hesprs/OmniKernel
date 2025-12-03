@@ -90,7 +90,6 @@ test('register a Store with options', () => {
 
 	expect(facade.data()).toBe('initial'); // Should not change
 	expect(consoleWarn).toBeCalled();
-
 	consoleWarn.mockRestore();
 });
 
@@ -134,6 +133,7 @@ test('handle onCallback and facade injection when registering', () => {
 
 test('delete a facade', () => {
 	const Kernel = new OmniKernel();
+	Kernel.register('root');
 	Kernel.register({ test: 'test' });
 	Kernel.register({
 		test: {
@@ -144,8 +144,48 @@ test('delete a facade', () => {
 	Kernel.delete(Kernel.facade.test);
 	expect(Kernel.facade.test).toBeUndefined();
 
+	Kernel.register({
+		test: 'test',
+	});
+	Kernel.delete(Kernel.facade); // delete root facade
+	expect(Kernel.facade.test).toBeUndefined(); // clear all children
+	expect(Kernel.facade).toBeDefined(); // preserve itself
 	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	Kernel.delete(Kernel.facade); // cannot delete root facade
-	expect(consoleWarn).toBeCalled();
+	expect(Kernel.facade()).toBeUndefined(); // clear itself
+	expect(consoleWarn).toHaveBeenCalledWith('[OmniKernel] facade is a placeholder facade.');
+	consoleWarn.mockRestore();
+});
+
+test('registerCall', () => {
+	const Kernel = new OmniKernel();
+	Kernel.register({
+		test: 'test',
+	});
+	Kernel.registerCall({
+		test: 'trash',
+		test2: 'test2',
+	});
+	expect(Kernel.facade.test2()).toBe('test2');
+	Kernel.register({
+		test2: 'trash',
+	});
+
+	expect(Kernel.facade.test()).toBe('trash');
+	expect(Kernel.facade.test2()).toBe('test2');
+});
+
+test('replace irreplaceable element', () => {
+	const Kernel = new OmniKernel();
+	Kernel.register(
+		{
+			test: 'test',
+		},
+		{ irreplaceable: true },
+	);
+	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+	Kernel.register({
+		test: 'trash',
+	});
+	expect(consoleWarn).toHaveBeenCalledWith('[OmniKernel] Element "test" is irreplaceable.');
 	consoleWarn.mockRestore();
 });
