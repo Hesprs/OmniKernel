@@ -168,7 +168,7 @@ test('registerCall', () => {
 	expect(Kernel.facade.test2()).toBe('test2');
 	Kernel.register({
 		test2: 'trash',
-	})
+	});
 
 	expect(Kernel.facade.test()).toBe('trash');
 	expect(Kernel.facade.test2()).toBe('test2');
@@ -176,13 +176,16 @@ test('registerCall', () => {
 
 test('replace irreplaceable element', () => {
 	const Kernel = new OmniKernel();
-	Kernel.register({
-		test: 'test',
-	}, { irreplaceable: true});
+	Kernel.register(
+		{
+			test: 'test',
+		},
+		{ irreplaceable: true },
+	);
 	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	Kernel.register({
 		test: 'trash',
-	})
+	});
 	expect(consoleWarn).toHaveBeenCalledWith('[OmniKernel] Element "test" is irreplaceable.');
 	consoleWarn.mockRestore();
-})
+});
