@@ -1,11 +1,12 @@
-import { elementMeta } from '@';
 import type { GeneralFunction } from '@/declarations';
+import { FacadeElement } from '@/utilities/baseClasses';
 
-export default class Runner implements GeneralElement {
+export default class Runner extends FacadeElement {
 	run: GeneralFunction;
 	constructor(func: GeneralFunction, options?: { immutable?: boolean; silent?: boolean }) {
+		super();
 		this.run = func;
-		if (options) this.meta = { ...this.meta, ...options };
+		if (options) Object.assign(this.meta, options);
 	}
 	set(newFunc: GeneralFunction) {
 		if (this.meta.immutable) {
@@ -14,10 +15,11 @@ export default class Runner implements GeneralElement {
 		}
 		this.run = newFunc;
 	}
+
+	facadeOverride = (...args: Array<unknown>) => this.run(...args);
+	onNormalize = () => this.run;
+
 	meta = {
-		...elementMeta,
-		facadeOverride: (...args: Array<unknown>) => this.run(...args),
-		onNormalize: () => this.run,
 		immutable: false,
 		silent: false,
 	};

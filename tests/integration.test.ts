@@ -1,191 +1,286 @@
 import { expect, test, vi } from 'vitest';
-import { elementMeta, OmniKernel, Store } from '@';
+import { FacadeElement, FacadeUnit, manifest, OmniKernel, Store } from '@';
 import type { GeneralObject } from '@/declarations';
 
 test('register a Store element', () => {
-	const Kernel = new OmniKernel();
-	Kernel.register('hello');
-	expect(Kernel.facade()).toBe('hello');
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			this.Kernel.register(
+				{
+					test: 'hello',
+				},
+				this.facade,
+			);
 
-	// Update the store
-	Kernel.facade('world');
-	expect(Kernel.facade()).toBe('world');
+			expect(this.facade.test()).toBe('hello');
+
+			// Update the store
+			this.facade.test('world');
+			expect(this.facade.test()).toBe('world');
+		}
+	}
+	new OmniKernel([Test]).bringUp();
 });
 
 test('register a nested object structure', () => {
-	const Kernel = new OmniKernel();
-	const toRegister = {
-		user: {
-			firstName: 'John',
-			age: 30,
-			preferences: {
-				theme: 'dark',
-			},
-			data: new Store({
-				balance: 100,
-				transactions: [],
-			}),
-			payments: {},
-		},
-	};
-	Kernel.register(toRegister);
-	const facade = Kernel.facade;
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			this.Kernel.register(
+				{
+					user: {
+						firstName: 'John',
+						age: 30,
+						preferences: {
+							theme: 'dark',
+						},
+						data: new Store({
+							balance: 100,
+							transactions: [],
+						}),
+						loans: {},
+					},
+				},
+				this.facade,
+			);
+			expect(this.facade.user.firstName()).toBe('John');
+			expect(this.facade.user.payments).toBeUndefined(); // empty object auto-trimmed
 
-	expect(facade.user.firstName()).toBe('John');
-	expect(facade.user.payments).toBeUndefined(); // empty object auto-trimmed
+			expect((this.facade.user.data() as GeneralObject).balance).toBe(100); // user-defined object as primitive
 
-	expect((facade.user.data() as GeneralObject).balance).toBe(100); // user-defined object as primitive
+			const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			this.facade.user(); // call a placeholder
+			expect(consoleWarn).toBeCalled();
+			consoleWarn.mockRestore();
 
-	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	facade.user(); // call a placeholder
-	expect(consoleWarn).toBeCalled();
-	consoleWarn.mockRestore();
-
-	// normalize should be as-is
-	const normalized = Kernel.normalize(facade.user);
-	expect(normalized).toEqual({
-		firstName: 'John',
-		age: 30,
-		data: {
-			balance: 100,
-			transactions: [],
-		},
-		preferences: {
-			theme: 'dark',
-		},
-	});
-});
-
-test('transplant a branch facade', () => {
-	const Kernel = new OmniKernel();
-	Kernel.register({
-		user: {
-			firstName: 'John',
-			theme: 'dark',
-		},
-	});
-
-	Kernel.register({ user: 'user' });
-	expect(Kernel.normalize(Kernel.facade)).toEqual({
-		user: {
-			_self: 'user',
-			firstName: 'John',
-			theme: 'dark',
-		},
-	});
+			// normalize should be as-is
+			const normalized = this.Kernel.normalize(this.facade.user);
+			expect(normalized).toEqual({
+				firstName: 'John',
+				age: 30,
+				data: {
+					balance: 100,
+					transactions: [],
+				},
+				preferences: {
+					theme: 'dark',
+				},
+			});
+		}
+	}
+	new OmniKernel([Test]).bringUp();
 });
 
 test('register a Store with options', () => {
-	const Kernel = new OmniKernel();
-	const storeValue = { data: 'initial' };
-	Kernel.register(storeValue, { immutable: true, silent: false });
-	const facade = Kernel.facade;
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			this.Kernel.register({ data: 'initial' }, this.facade, { immutable: true, silent: false });
 
-	const normalized = Kernel.normalize(facade.data);
-	expect(normalized).toBe('initial');
+			const normalized = this.Kernel.normalize(this.facade.data);
+			expect(normalized).toBe('initial');
 
-	// Test immutability
-	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	facade.data('new value');
+			// Test immutability
+			const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			this.facade.data('new value');
 
-	expect(facade.data()).toBe('initial'); // Should not change
-	expect(consoleWarn).toBeCalled();
-	consoleWarn.mockRestore();
-});
-
-test('handle onCallback and facade injection when registering', () => {
-	const Kernel = new OmniKernel();
-	Kernel.register('context');
-
-	class TestElement implements GeneralElement {
-		CCB = vi.fn();
-		meta = {
-			...elementMeta,
-			onConnected: this.CCB,
-		};
+			expect(this.facade.data()).toBe('initial'); // Should not change
+			expect(consoleWarn).toBeCalled();
+			consoleWarn.mockRestore();
+		}
 	}
-
-	const element = new TestElement();
-
-	Kernel.register({
-		test: element,
-	});
-	Kernel.register('parent');
-	Kernel.register({
-		test: {
-			test2: 1,
-		},
-	});
-	expect(element.CCB).toBeCalledWith();
-	expect(Kernel.facade.test()).toEqual((Kernel.normalize(Kernel.facade.test) as GeneralObject)._self);
-	expect(element.meta.thisFacade.test2()).toEqual(1);
-	expect((element.meta.parentFacade as Facade)()).toBe('parent');
-
-	// parentFacade update after transplant
-	Kernel.register('parent2');
-	expect((element.meta.parentFacade as Facade)()).toBe('parent2');
-
-	// root facade cannot have parent
-	const rootElement = new TestElement();
-	Kernel.register(rootElement);
-	expect(rootElement.meta.parentFacade).toBeUndefined();
-});
-
-test('delete a facade', () => {
-	const Kernel = new OmniKernel();
-	Kernel.register('root');
-	Kernel.register({ test: 'test' });
-	Kernel.register({
-		test: {
-			child: 'child',
-		},
-	});
-	expect(Kernel.facade.test).toBeDefined();
-	Kernel.delete(Kernel.facade.test);
-	expect(Kernel.facade.test).toBeUndefined();
-
-	Kernel.register({
-		test: 'test',
-	});
-	Kernel.delete(Kernel.facade); // delete root facade
-	expect(Kernel.facade.test).toBeUndefined(); // clear all children
-	expect(Kernel.facade).toBeDefined(); // preserve itself
-	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	expect(Kernel.facade()).toBeUndefined(); // clear itself
-	expect(consoleWarn).toHaveBeenCalledWith('[OmniKernel] facade is a placeholder facade.');
-	consoleWarn.mockRestore();
-});
-
-test('registerCall', () => {
-	const Kernel = new OmniKernel();
-	Kernel.register({
-		test: 'test',
-	});
-	Kernel.registerCall({
-		test: 'trash',
-		test2: 'test2',
-	});
-	expect(Kernel.facade.test2()).toBe('test2');
-	Kernel.register({
-		test2: 'trash',
-	});
-
-	expect(Kernel.facade.test()).toBe('trash');
-	expect(Kernel.facade.test2()).toBe('test2');
+	new OmniKernel([Test]).bringUp();
 });
 
 test('replace irreplaceable element', () => {
-	const Kernel = new OmniKernel();
-	Kernel.register(
-		{
-			test: 'test',
-		},
-		{ irreplaceable: true },
-	);
-	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	Kernel.register({
-		test: 'trash',
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			this.Kernel.register(
+				{
+					test: 'test',
+				},
+				this.facade,
+				{ irreplaceable: true },
+			);
+
+			const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			this.Kernel.register({ test: 'trash' }, this.facade);
+			expect(consoleWarn).toHaveBeenCalledWith('[OmniKernel] Element "test" is irreplaceable.');
+			consoleWarn.mockRestore();
+		}
+	}
+	new OmniKernel([Test]).bringUp();
+});
+
+test('handle onConnected and facade injection when registering', () => {
+	class TestElement extends FacadeElement {
+		CCB = vi.fn();
+		onConnected = this.CCB;
+	}
+
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			const element = new TestElement();
+			this.Kernel.register(
+				{
+					test: element,
+				},
+				this.facade,
+			);
+
+			this.Kernel.register(
+				{
+					test: {
+						test2: 1,
+					},
+				},
+				this.facade,
+			);
+			expect(element.CCB).toBeCalledWith();
+			expect(this.facade.test()).toEqual(
+				(this.Kernel.normalize(this.facade.test) as GeneralObject).value,
+			);
+			expect(element.facades[0].test2()).toEqual(1);
+			expect(element.facades[1]()).toBeInstanceOf(Test);
+		}
+	}
+	new OmniKernel([Test]).bringUp();
+});
+
+test('delete a facade', () => {
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			this.Kernel.register({ test: 'test' }, this.facade);
+			this.Kernel.register(
+				{
+					test: {
+						child: 'child',
+					},
+				},
+				this.facade,
+			);
+			expect(this.facade.test).toBeDefined();
+			this.Kernel.delete(this.facade.test); // delete a branch
+			expect(this.facade.test).toBeUndefined();
+
+			this.Kernel.delete(this.facade); // try to delete root facade
+			expect(this.facade.test).toBeUndefined(); // clear all children
+			expect(this.facade).toBeDefined(); // preserve itself
+			const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			expect(this.facade()).toBeUndefined(); // clear itself
+			expect(consoleWarn).toHaveBeenCalled();
+			consoleWarn.mockRestore();
+			expect(this.dispose).toBeCalled();
+		}
+
+		dispose = vi.fn();
+	}
+	new OmniKernel([Test]).bringUp();
+});
+
+test('registerCall', () => {
+	@manifest({ name: 'Test' })
+	class Test extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			this.Kernel.register(
+				{
+					test: 'test',
+				},
+				this.facade,
+			);
+			this.Kernel.registerCall(
+				{
+					test: 'trash',
+					test2: 'test2',
+				},
+				this.facade,
+			);
+			expect(this.facade.test2()).toBe('test2');
+			this.Kernel.register(
+				{
+					test2: 'trash',
+				},
+				this.facade,
+			);
+
+			expect(this.facade.test()).toBe('trash');
+			expect(this.facade.test2()).toBe('test2');
+		}
+	}
+	new OmniKernel([Test]).bringUp();
+});
+
+test('dependency resolution', () => {
+	const test1OnConnected = vi.fn();
+	const test2OnConnected = vi.fn();
+	const test1OnDisconnected = vi.fn();
+	const test2OnDisconnected = vi.fn();
+	const test3OnConnected = vi.fn();
+	const test3OnDisconnected = vi.fn();
+	@manifest({ name: 'test1' })
+	class Test1 extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			test1OnConnected();
+		}
+		dispose = test1OnDisconnected;
+	}
+	@manifest({
+		name: 'test2',
+		dependsOn: ['test1'],
+	})
+	class Test2 extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			test2OnConnected();
+		}
+		dispose = test2OnDisconnected;
+	}
+	@manifest({
+		name: 'test3',
+		dependsOn: ['test1', 'test2'],
+	})
+	class Test3 extends FacadeUnit {
+		constructor(...args: UnitArgs) {
+			super(...args);
+			test3OnConnected();
+			expect(this.deps.test1).toBeDefined();
+			expect(this.deps.test2()).toBeInstanceOf(Test2);
+		}
+		dispose = test3OnDisconnected;
+	}
+
+	expect(Test2[Symbol.metadata]).toEqual({
+		name: 'test2',
+		dependsOn: ['test1'],
 	});
-	expect(consoleWarn).toHaveBeenCalledWith('[OmniKernel] Element "test" is irreplaceable.');
-	consoleWarn.mockRestore();
+
+	const Kernel = new OmniKernel([Test1, Test2, Test3]);
+
+	Kernel.bringUp(['test3']); // correct order:  test1, test2, test3
+	expect(test1OnConnected).toHaveBeenCalled();
+	expect(test2OnConnected).toHaveBeenCalled();
+	expect(test3OnConnected).toHaveBeenCalled();
+	expect(test2OnConnected).toHaveBeenCalledAfter(test1OnConnected);
+	expect(test3OnConnected).toHaveBeenCalledAfter(test2OnConnected);
+	expect(Kernel.listRunningUnits().includes('test1')).toBe(true);
+
+	Kernel.shutDown(); // correct order:  test3, test2, test1
+	expect(test3OnDisconnected).toHaveBeenCalled();
+	expect(test2OnDisconnected).toHaveBeenCalled();
+	expect(test1OnDisconnected).toHaveBeenCalled();
+	expect(test2OnDisconnected).toHaveBeenCalledBefore(test1OnDisconnected);
+	expect(test3OnDisconnected).toHaveBeenCalledBefore(test2OnDisconnected);
+	expect(Kernel.listRunningUnits()[0]).toBeUndefined();
 });

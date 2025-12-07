@@ -1,18 +1,14 @@
 import type { GeneralObject, labelerResult } from '@/declarations';
+import { FacadeElement } from '@/utilities/baseClasses';
 
 function isObject(toCheck: unknown) {
-	return (
-		typeof toCheck === 'object' &&
-		toCheck !== null &&
-		!Array.isArray(toCheck) &&
-		(typeof Element === 'undefined' || !(toCheck instanceof Element))
-	);
+	return typeof toCheck === 'object' && toCheck !== null && !Array.isArray(toCheck);
 }
 
 type Token = { label: labelerResult; path: Array<string>; value: unknown };
 
-export default function tokenizer(toTokenize: unknown, currentPath: Array<string> = []) {
-	let result: Array<Token> = [];
+export function tokenizer(toTokenize: unknown, currentPath: Array<string> = []) {
+	const result: Array<Token> = [];
 	function push(path: Array<string>, value: unknown, label: ReturnType<typeof labeler>) {
 		if (label !== 'placeholder') result.push({ path, value, label });
 	}
@@ -20,9 +16,9 @@ export default function tokenizer(toTokenize: unknown, currentPath: Array<string
 	if (isObject(toTokenize)) {
 		const toAddLabel = labeler(toTokenize, true);
 		push(currentPath, toTokenize, toAddLabel);
-		if (toAddLabel !== 'preserved') {
+		if (toAddLabel === 'placeholder') {
 			Object.keys(toTokenize as GeneralObject).forEach(key => {
-				result = [...result, ...tokenizer((toTokenize as GeneralObject)[key], [...currentPath, key])];
+				result.push(...tokenizer((toTokenize as GeneralObject)[key], [...currentPath, key]));
 			});
 		}
 	} else push(currentPath, toTokenize, labeler(toTokenize, false));
@@ -32,10 +28,11 @@ export default function tokenizer(toTokenize: unknown, currentPath: Array<string
 
 function labeler(toLabel: unknown, isObj: boolean = isObject(toLabel)) {
 	if (isObj) {
-		if ((toLabel as GeneralObject).meta) return 'preserved';
-		else return 'placeholder';
+		if (toLabel instanceof FacadeElement) return 'preserved';
+		if (typeof Element !== 'undefined' && toLabel instanceof Element) return 'store';
+		return 'placeholder';
 	} else {
-		if (typeof toLabel === 'function') return 'default:runner';
-		return 'default:store';
+		if (typeof toLabel === 'function') return 'runner';
+		return 'store';
 	}
 }

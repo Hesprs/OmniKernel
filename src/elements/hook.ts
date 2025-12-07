@@ -1,12 +1,13 @@
-import { elementMeta } from '@';
-import type { GeneralArguments } from '@/declarations';
+import type { Arguments } from '@/declarations';
+import { FacadeElement } from '@/utilities/baseClasses';
 
-export default class Hook implements GeneralElement {
+export default class Hook extends FacadeElement {
 	constructor(options?: { async: boolean }) {
-		if (options) this.meta = { ...this.meta, ...options };
+		super();
+		if (options) Object.assign(this.meta, options);
 	}
-	run = (...args: GeneralArguments) => {
-		const children = this.meta.thisFacade;
+	run = (...args: Arguments) => {
+		const children = this.facades[0];
 		if (this.meta.async) {
 			Object.values(children).forEach(async func => {
 				await func(...args);
@@ -17,10 +18,8 @@ export default class Hook implements GeneralElement {
 			});
 		}
 	};
-	meta = {
-		...elementMeta,
-		facadeOverride: this.run,
-		onNormalize: () => this.run,
-		async: false,
-	};
+	meta = { async: false };
+
+	facadeOverride = this.run;
+	onNormalize = () => this.run;
 }

@@ -1,21 +1,24 @@
-import { expect, test, vi } from 'vitest';
-import { OmniKernel } from '@';
+import { expect, test } from 'vitest';
+import { FacadeUnit, OmniKernel } from '@';
+
+class Test extends FacadeUnit {}
 
 test('instantiate OmniKernel', () => {
 	expect(OmniKernel).toBeDefined();
 	expect(OmniKernel).toBeInstanceOf(Object);
 
+	expect(() => {
+		new OmniKernel([Test]);
+	}).toThrow('"Test" is not a facade unit, consider using @manifest decorator to give it a name.');
 	const Kernel = new OmniKernel();
 	expect(Kernel).toBeInstanceOf(OmniKernel);
 
-	expect(Kernel).toHaveProperty('facade');
 	expect(Kernel).toHaveProperty('register');
-	expect(Kernel).toHaveProperty('registerAt');
+	expect(Kernel).toHaveProperty('record');
 	expect(Kernel).toHaveProperty('normalize');
-
-	expect(Kernel.facade).toBeInstanceOf(Function);
-	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	expect(Kernel.facade()).toBeUndefined();
-	expect(warnSpy).toBeCalled();
-	warnSpy.mockRestore();
+	expect(Kernel).toHaveProperty('delete');
+	expect(Kernel).toHaveProperty('bringUp');
+	expect(Kernel).toHaveProperty('shutDown');
+	expect(Kernel).toHaveProperty('registerCall');
+	expect(Kernel).toHaveProperty('listRunningUnits');
 });

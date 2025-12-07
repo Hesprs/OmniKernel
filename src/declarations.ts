@@ -1,44 +1,41 @@
-import type OmniKernel from './omniKernel';
+import type OmniKernel from '@/omniKernel';
+import type { FacadeElement, FacadeUnit } from '@/utilities/baseClasses';
 
 // biome-ignore lint/suspicious/noExplicitAny: General Type
-export type GeneralArguments = Array<any>;
+export type Arguments = Array<any>;
 // biome-ignore lint/suspicious/noExplicitAny: General Type
-export type GeneralFunction = (...args: GeneralArguments) => any;
-// biome-ignore lint/suspicious/noExplicitAny: General Type
-export type GeneralClass = new (...args: GeneralArguments) => any;
+export type GeneralFunction = (...args: Arguments) => any;
+export type GeneralConstructor<T> = new (...args: Arguments) => T;
 // biome-ignore lint/suspicious/noExplicitAny: General Type
 export type GeneralObject = Record<Indexable, any>;
 export type Indexable = string | number | symbol;
-export type labelerResult = 'preserved' | 'default:store' | 'default:runner';
+export type labelerResult = 'preserved' | 'store' | 'runner';
+export type FacadeMap = Map<string, FacadeElement | FacadeUnit>;
+export type Unit = {
+	dependsOn?: Array<string>;
+	requires?: Array<string>;
+	facade: Facade;
+	initiated: boolean;
+	element: GeneralConstructor<FacadeUnit>;
+};
+export type Meta = {
+	moduleName?: string;
+	dependencies?: Array<string>;
+	silent?: boolean;
+	irreplaceable?: boolean;
+	// biome-ignore lint/suspicious/noExplicitAny: user defined
+	[key: Indexable]: any;
+};
+export type Manifest = {
+	name: string;
+	dependsOn?: Array<string>;
+	requires?: Array<string>;
+};
 
 declare global {
-	interface Facade {
+	type Facade = {
 		(...args: Array<unknown>): unknown;
 		[key: Indexable]: Facade;
-	}
-
-	interface GeneralElement {
-		meta: Meta & {
-			// must have context
-			Kernel: OmniKernel;
-			thisFacade: Facade;
-			parentFacade: Facade | undefined;
-			name: string;
-		};
-	}
-
-	type Meta = {
-		// options
-		silent?: boolean;
-		irreplaceable?: boolean;
-		caller?: boolean; // if the element is to be replaced, the normalized output will be used to call the successor
-
-		// communication with OmniKernel
-		onConnected?: GeneralFunction;
-		onDisconnected?: GeneralFunction;
-		onNormalize?: unknown;
-		facadeOverride?: GeneralFunction;
-
-		[key: Indexable]: unknown;
 	};
+	type UnitArgs = [Facade, Record<string, Facade>, OmniKernel, Meta | undefined, FacadeMap];
 }

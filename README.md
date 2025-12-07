@@ -1,4 +1,4 @@
-# OmniKernel v0.2.1
+# OmniKernel v0.3.0
 
 [![Codecov](https://img.shields.io/codecov/c/github/hesprs/omnikernel/main?style=flat&logo=codecov&logoColor=white&label=Test%20Coverage&labelColor=ff0077&color=333333)](https://codecov.io/github/Hesprs/OmniKernel)
 [![CodeFactor](https://img.shields.io/codefactor/grade/github/hesprs/omnikernel?style=flat&logo=codefactor&logoColor=white&label=Code%20Quality&labelColor=17b37a&color=333333
@@ -13,11 +13,14 @@
 ## Todo
 
 - [ ] write doc.
-- [ ] support `noChild` flag.
+- [ ] support `noMoreChild` flag.
+- ~~[ ] support `rootlessElement` that can only be instantiated once.~~
 - [x] support `irreplaceable` flag.
-- [ ] support ``addChild` meta method.
+- [ ] support `flow` element.
+- [x] basic dependency resolution.
+- [ ] support `addChild` meta method.
 - [x] add `registerCall` helper method to main class.
-- [ ] figure out how to use `extend` to define elements.
-- [ ] handle classes with `instantiator`.
+- [x] figure out how to use `extend` to define elements.
 - [x] add `delete` helper method to main class.
 - [x] create `reactive` element.
+- [ ] add `disconnect` helper method to main class, which removes an element from the facade and returns it.
