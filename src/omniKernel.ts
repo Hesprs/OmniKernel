@@ -1,102 +1,142 @@
-import type { GeneralArguments, GeneralFunction, GeneralObject, labelerResult } from '@/declarations';
+import type {
+	Arguments,
+	FacadeMap,
+	GeneralConstructor,
+	GeneralFunction,
+	GeneralObject,
+	labelerResult,
+	Manifest,
+	Meta,
+	Unit,
+} from '@/declarations';
 import Runner from '@/elements/runner';
 import Store from '@/elements/store';
-import tokenizer from '@/utilities/tokenizer';
+import type { FacadeElement, FacadeUnit } from '@/utilities/baseClasses';
+import depResolver from '@/utilities/depResolver';
+import { getManifest } from '@/utilities/manifest';
+import { tokenizer } from '@/utilities/tokenizer';
 
 export default class OmniKernel {
-	private facadeMap: Map<string, GeneralElement> = new Map();
-	facade = facadeFunc('facade', this.facadeMap);
+	private facadeMap: FacadeMap = new Map();
 
-	constructor(toRegister?: unknown) {
-		if (toRegister) this.register(toRegister);
+	constructor(toRecord?: Array<GeneralConstructor<FacadeUnit>>) {
+		if (toRecord)
+			toRecord.forEach(unit => {
+				this.record(unit);
+			});
 	}
 
-	// register elements recursively
-	register(toRegister: unknown, additionalMeta?: Meta, baseFacade?: Facade) {
+	// #region units
+	private units: Record<string, Unit> = {};
+	record(element: GeneralConstructor<FacadeUnit>) {
+		const manifest = getManifest(element) as Manifest;
+		if (!manifest)
+			throw new Error(
+				`"${element.name}" is not a facade unit, consider using @manifest decorator to give it a name.`,
+			);
+		const name = manifest.name;
+		this.units[name] = {
+			element,
+			facade: facadeFunc(this.facadeMap),
+			initiated: false,
+		};
+		if (manifest.dependsOn) this.units[name].dependsOn = manifest.dependsOn;
+		if (manifest.requires) this.units[name].requires = manifest.requires;
+	}
+
+	bringUp(shouldBringUp: Array<string> = Object.keys(this.units), additionalMeta?: Meta) {
+		const order = depResolver(this.units, shouldBringUp);
+		order.forEach(name => {
+			const target = this.units[name];
+			if (target.initiated) return;
+			target.initiated = true;
+			new target.element(
+				target.facade,
+				this.collectDepAndRequire(name),
+				this,
+				additionalMeta,
+				this.facadeMap,
+			);
+		});
+	}
+
+	shutDown(shouldShutDown: Array<string> = Object.keys(this.units)) {
+		const order = depResolver(this.units, shouldShutDown).reverse();
+		order.forEach(name => {
+			const target = this.units[name];
+			if (!target.initiated) return;
+			target.initiated = false;
+			this.delete(target.facade);
+		});
+	}
+	// #endregion ===============================================================
+
+	// #region Register
+	register(toRegister: unknown, baseFacade: Facade, additionalMeta?: Meta) {
 		const tokens = tokenizer(toRegister);
 		tokens.forEach(token => {
-			const facadeList = this.walker(token.path, baseFacade);
-			const element = allocator(token.label, token.value);
 			this.registerAt(
-				facadeList,
-				element,
+				this.walker(token.path, baseFacade),
+				allocator(token.label, token.value),
 				token.path[token.path.length - 1] || 'facade',
 				additionalMeta,
 			);
 		});
 	}
 
-	// call the facades at given paths
-	registerCall(toRegister: unknown, baseFacade?: Facade) {
-		const tokens = tokenizer(toRegister);
-		tokens.forEach(token => {
-			const facadeList = this.walker(token.path, baseFacade);
-			this.registerCallAt(
-				facadeList,
-				token.value,
-				token.path[token.path.length - 1] || 'facade',
-				token.label,
-			);
-		});
-	}
-
-	// call or register an element at a given path
-	private registerCallAt(facadeList: Array<Facade>, args: unknown, keyName: string, label: labelerResult) {
-		const targetFacade = facadeList[0];
-		const toCall = this.facadeMap.get(targetFacade.name);
-		if (toCall) {
-			// if the element exists, call it
-			const argsList = Array.isArray(args) ? args : [args];
-			targetFacade(...argsList);
-		} else {
-			// if the element does not exist, create a caller
-			const element = allocator(label, args);
-			this.registerAt(facadeList, element, keyName, { caller: true });
-		}
-	}
-
 	// register an element at a given path
 	private registerAt(
-		facadeList: Array<Facade>,
-		element: GeneralElement,
+		facades: Array<Facade>,
+		element: FacadeElement,
 		keyName: string,
 		additionalMeta?: Meta,
 	) {
-		if (additionalMeta) element.meta = { ...element.meta, ...additionalMeta };
+		if (additionalMeta) Object.assign(element.meta, additionalMeta);
 
-		const id = facadeList[0].name;
-		const toReplace = this.facadeMap.get(id);
+		const id = facades[0].name;
+		const toReplace = this.facadeMap.get(id) as FacadeElement;
 		if (toReplace?.meta.irreplaceable) {
 			if (!toReplace.meta.silent) console.warn(`[OmniKernel] Element "${keyName}" is irreplaceable.`);
 			return;
 		}
 
-		let callerArgsList: GeneralArguments | undefined;
+		let callerArgsList: Arguments | undefined;
 		if (toReplace?.meta.caller) {
-			const args = this.normalize(facadeList[0]);
+			const args = facades[0]();
 			callerArgsList = Array.isArray(args) ? args : [args];
 		}
 
-		if (toReplace?.meta.onDisconnected) toReplace.meta.onDisconnected();
+		if (toReplace?.onDisconnected) toReplace.onDisconnected();
 		this.facadeMap.set(id, element);
-		injector(element, { facadeList, Kernel: this, keyName });
+		injector(element, { facades, Kernel: this, keyName });
 
-		if (callerArgsList) facadeList[0](...callerArgsList);
+		if (callerArgsList) facades[0](...callerArgsList);
 	}
+	// #endregion ===============================================================
 
-	// walk the tree to return the parent facade
-	private walker(path: Array<string>, baseFacade: Facade = this.facade) {
-		let currentBranch = baseFacade;
-		const pathList: Array<Facade> = [];
-		path.forEach(crumb => {
-			if (!(crumb in currentBranch)) currentBranch[crumb] = facadeFunc(generateId(), this.facadeMap);
-			pathList.push(currentBranch);
-			currentBranch = currentBranch[crumb];
+	// #region Register Call
+	// call the facades at given paths
+	registerCall(toRegister: unknown, baseFacade: Facade) {
+		const tokens = tokenizer(toRegister);
+		tokens.forEach(token => {
+			const facades = this.walker(token.path, baseFacade);
+			this.registerCallAt(facades, token.value, token.path[token.path.length - 1] || 'facade');
 		});
-		pathList.push(currentBranch);
-		return pathList.reverse();
 	}
 
+	// call or register an element at a given path
+	private registerCallAt(facades: Array<Facade>, args: unknown, keyName: string) {
+		const targetFacade = facades[0];
+		const toCall = this.facadeMap.get(targetFacade.name);
+		// if the element exists, call it, else create a caller store
+		if (toCall) {
+			const argsList = Array.isArray(args) ? args : [args];
+			targetFacade(...argsList);
+		} else this.registerAt(facades, new Store(args), keyName, { caller: true });
+	}
+	// #endregion ===============================================================
+
+	// #region Public Helpers
 	// convert facade to plain object
 	normalize(toNormalize: Facade) {
 		let self: unknown;
@@ -105,11 +145,11 @@ export default class OmniKernel {
 		// self
 		const node = this.facadeMap.get(toNormalize.name);
 		if (node) {
-			const func = node.meta.onNormalize;
+			const func = node.onNormalize;
 			if (func) {
 				if (typeof func === 'function') self = func();
 				else self = func;
-			} else if ('normalize' in node.meta) self = node.meta.normalize;
+			} else if ('normalize' in node) self = node.normalize;
 			else self = node;
 		}
 
@@ -119,45 +159,81 @@ export default class OmniKernel {
 		});
 
 		if (Object.keys(children).length === 0) return self;
-		else if (!self) return children;
-		else return { _self: self, ...children };
+		if (self) Object.assign(children, { value: self });
+		return children;
 	}
 
 	delete(toDelete: Facade) {
+		const realToDelete = this.facadeMap.get(toDelete.name) as FacadeElement & FacadeUnit;
+		if (!realToDelete) return;
+		if (realToDelete.onDisconnected) realToDelete.onDisconnected();
+		if (realToDelete.dispose) realToDelete.dispose();
 		Object.values(toDelete).forEach(element => {
 			this.delete(element);
 		});
-		const realToDelete = this.facadeMap.get(toDelete.name);
-		if (realToDelete?.meta.onDisconnected) realToDelete.meta.onDisconnected();
 		this.facadeMap.delete(toDelete.name);
-		delete realToDelete?.meta.parentFacade?.[realToDelete?.meta.name];
+		const parent = realToDelete.facades?.[1];
+		if (parent) delete parent[realToDelete.facadeName];
 	}
+
+	listRunningUnits() {
+		const result: Array<string> = [];
+		Object.keys(this.units).forEach(unitName => {
+			const unit = this.units[unitName];
+			if (unit.initiated) result.push(unitName);
+		});
+		return result;
+	}
+	// #endregion ===============================================================
+
+	// #region Private Helpers
+	private collectDepAndRequire(target: string) {
+		const result: Record<string, Facade> = {};
+		const inUnits = this.units[target];
+		[...(inUnits.dependsOn || []), ...(inUnits.requires || [])].forEach(dep => {
+			result[dep] = this.units[dep].facade;
+		});
+		return result;
+	}
+
+	// walk the tree to return the facades hierarchy
+	private walker(path: Array<string>, baseFacade: Facade) {
+		let currentBranch = baseFacade;
+		const pathList: Array<Facade> = [];
+		path.forEach(crumb => {
+			if (!(crumb in currentBranch)) currentBranch[crumb] = facadeFunc(this.facadeMap);
+			pathList.push(currentBranch);
+			currentBranch = currentBranch[crumb];
+		});
+		pathList.push(currentBranch);
+		return pathList.reverse();
+	}
+	// #endregion ===============================================================
 }
 
 // copy give context to an element when added into facade
 function injector(
-	element: GeneralElement,
+	element: FacadeElement,
 	context: {
-		facadeList: Array<Facade>;
+		facades: Array<Facade>;
 		Kernel: OmniKernel;
 		keyName: string;
 	},
 ) {
-	element.meta.thisFacade = context.facadeList[0];
-	if (context.facadeList[0].name !== 'facade') element.meta.parentFacade = context.facadeList[1];
-	element.meta.Kernel = context.Kernel;
-	element.meta.name = context.keyName;
-	if (element.meta.onConnected) element.meta.onConnected();
+	element.facadeInjections.facades = context.facades;
+	element.facadeInjections.Kernel = context.Kernel;
+	element.facadeInjections.facadeName = context.keyName;
+	if (element.onConnected) element.onConnected();
 }
 
 // instantiate elements to be merged
 function allocator(label: labelerResult, value: unknown) {
 	switch (label) {
 		case 'preserved':
-			return value as GeneralElement;
-		case 'default:store':
+			return value as FacadeElement;
+		case 'store':
 			return new Store(value);
-		case 'default:runner':
+		case 'runner':
 			return new Runner(value as GeneralFunction);
 	}
 }
@@ -171,15 +247,15 @@ function generateId(length = 10) {
 }
 
 // create facade function
-function facadeFunc(funcName: string, facadeMap: Map<string, GeneralElement>) {
+function facadeFunc(facadeMap: FacadeMap, funcName: string = generateId()) {
 	const middleware = {
 		[funcName](...args: Array<unknown>) {
 			const node = facadeMap.get(funcName);
 			if (!node) {
-				console.warn(`[OmniKernel] ${funcName} is a placeholder facade.`);
+				console.warn(`[OmniKernel] "${funcName}" is a placeholder facade.`);
 				return;
 			}
-			if (node.meta.facadeOverride) return node.meta.facadeOverride(...args);
+			if (node.facadeOverride) return node.facadeOverride(...args);
 			else return node;
 		},
 	};

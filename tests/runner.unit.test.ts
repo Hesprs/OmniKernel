@@ -8,14 +8,14 @@ const newFunc = () => 'updated';
 test('Runner executes the stored function', () => {
 	const runner = new Runner(sampleFunc);
 	expect(runner.run()).toBe('original');
-	expect(runner.meta.facadeOverride()).toBe('original');
+	expect(runner.facadeOverride()).toBe('original');
 });
 
 test('Runner can update its function with set()', () => {
 	const runner = new Runner(sampleFunc);
 	runner.set(newFunc);
 	expect(runner.run()).toBe('updated');
-	expect(runner.meta.facadeOverride()).toBe('updated');
+	expect(runner.facadeOverride()).toBe('updated');
 });
 
 test('Runner respects immutable flag and prevents updates', () => {
@@ -39,7 +39,7 @@ test('Runner respects silent flag when immutable and suppresses warnings', () =>
 
 test('Runner meta.normalizeCallback returns the current function', () => {
 	const runner = new Runner(sampleFunc);
-	expect(runner.meta.onNormalize()).toBe(sampleFunc);
+	expect(runner.onNormalize()).toBe(sampleFunc);
 	runner.set(newFunc);
-	expect(runner.meta.onNormalize()).toBe(newFunc);
+	expect(runner.onNormalize()).toBe(newFunc);
 });

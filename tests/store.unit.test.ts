@@ -7,19 +7,19 @@ const newValue = 'updated';
 
 test('Store meta.facade acts as a getter', () => {
 	const store = new Store(initialValue);
-	expect(store.meta.facadeOverride()).toBe(initialValue);
+	expect(store.facadeOverride()).toBe(initialValue);
 });
 
 test('Store meta.facade acts as a setter', () => {
 	const store = new Store(initialValue);
-	store.meta.facadeOverride(newValue);
+	store.facadeOverride(newValue);
 	expect(store.value).toBe(newValue);
 });
 
 test('Store respects immutable flag and prevents updates', () => {
 	const store = new Store(initialValue, { immutable: true });
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	store.meta.facadeOverride(newValue);
+	store.facadeOverride(newValue);
 	expect(store.value).toBe(initialValue);
 	expect(warnSpy).toBeCalled();
 	warnSpy.mockRestore();
@@ -28,7 +28,7 @@ test('Store respects immutable flag and prevents updates', () => {
 test('Store respects silent flag when immutable', () => {
 	const store = new Store(initialValue, { immutable: true, silent: true });
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	store.meta.facadeOverride(newValue);
+	store.facadeOverride(newValue);
 	expect(store.value).toBe(initialValue);
 	expect(warnSpy).not.toBeCalled();
 	warnSpy.mockRestore();
@@ -36,7 +36,7 @@ test('Store respects silent flag when immutable', () => {
 
 test('Store meta.normalizeCallback returns current value', () => {
 	const store = new Store(initialValue);
-	expect(store.meta.onNormalize()).toBe(initialValue);
+	expect(store.onNormalize()).toBe(initialValue);
 	store.set(newValue);
-	expect(store.meta.onNormalize()).toBe(newValue);
+	expect(store.onNormalize()).toBe(newValue);
 });

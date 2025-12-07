@@ -1,8 +1,8 @@
 {
 	"name": "omnikernel",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"type": "module",
-	"description": "The ultimate modular architecture that streamlines EVERYTHING.",
+	"description": "The ultimate modular architecture container that streamlines EVERYTHING.",
 	"types": "./dist/types/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -22,7 +22,7 @@
 	"bugs": {
 		"url": "https://github.com/Hesprs/OmniKernel/issues"
 	},
-	"keywords": ["Architecture", "Modular", "Microkernel", "IPC", "TypeScript"],
+	"keywords": ["architecture", "modular", "microkernel", "IPC", "TypeScript", "dependency-injection"],
 	"author": {
 		"name": "Hēsperus",
 		"email": "hesprs@outlook.com"
