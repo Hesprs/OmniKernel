@@ -2,15 +2,15 @@ import type OmniKernel from '@/omniKernel';
 import type { FacadeElement, FacadeUnit } from '@/utilities/baseClasses';
 
 // biome-ignore lint/suspicious/noExplicitAny: General Type
-export type Arguments = Array<any>;
+export type GeneralArguments = Array<any>;
 // biome-ignore lint/suspicious/noExplicitAny: General Type
-export type GeneralFunction = (...args: Arguments) => any;
-export type GeneralConstructor<T> = new (...args: Arguments) => T;
+export type GeneralFunction = (...args: GeneralArguments) => any;
+export type GeneralConstructor<T> = new (...args: GeneralArguments) => T;
 // biome-ignore lint/suspicious/noExplicitAny: General Type
 export type GeneralObject = Record<Indexable, any>;
 export type Indexable = string | number | symbol;
 export type labelerResult = 'preserved' | 'store' | 'runner';
-export type FacadeMap = Map<string, FacadeElement | FacadeUnit>;
+export type FacadeMap = Record<string, FacadeElement | FacadeUnit>;
 export type Unit = {
 	dependsOn?: Array<string>;
 	requires?: Array<string>;

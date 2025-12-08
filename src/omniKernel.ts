@@ -1,6 +1,6 @@
 import type {
-	Arguments,
 	FacadeMap,
+	GeneralArguments,
 	GeneralConstructor,
 	GeneralFunction,
 	GeneralObject,
@@ -17,7 +17,8 @@ import { getManifest } from '@/utilities/manifest';
 import { tokenizer } from '@/utilities/tokenizer';
 
 export default class OmniKernel {
-	private facadeMap: FacadeMap = new Map();
+	// Objects are more optimized for string lookup (although insignificant)
+	private facadeMap: FacadeMap = Object.create(null);
 
 	constructor(toRecord?: Array<GeneralConstructor<FacadeUnit>>) {
 		if (toRecord)
@@ -94,20 +95,20 @@ export default class OmniKernel {
 		if (additionalMeta) Object.assign(element.meta, additionalMeta);
 
 		const id = facades[0].name;
-		const toReplace = this.facadeMap.get(id) as FacadeElement;
+		const toReplace = this.facadeMap[id] as FacadeElement;
 		if (toReplace?.meta.irreplaceable) {
 			if (!toReplace.meta.silent) console.warn(`[OmniKernel] Element "${keyName}" is irreplaceable.`);
 			return;
 		}
 
-		let callerArgsList: Arguments | undefined;
+		let callerArgsList: GeneralArguments | undefined;
 		if (toReplace?.meta.caller) {
 			const args = facades[0]();
 			callerArgsList = Array.isArray(args) ? args : [args];
 		}
 
 		if (toReplace?.onDisconnected) toReplace.onDisconnected();
-		this.facadeMap.set(id, element);
+		this.facadeMap[id] = element;
 		injector(element, { facades, Kernel: this, keyName });
 
 		if (callerArgsList) facades[0](...callerArgsList);
@@ -127,7 +128,7 @@ export default class OmniKernel {
 	// call or register an element at a given path
 	private registerCallAt(facades: Array<Facade>, args: unknown, keyName: string) {
 		const targetFacade = facades[0];
-		const toCall = this.facadeMap.get(targetFacade.name);
+		const toCall = this.facadeMap[targetFacade.name];
 		// if the element exists, call it, else create a caller store
 		if (toCall) {
 			const argsList = Array.isArray(args) ? args : [args];
@@ -143,7 +144,7 @@ export default class OmniKernel {
 		const children: GeneralObject = {};
 
 		// self
-		const node = this.facadeMap.get(toNormalize.name);
+		const node = this.facadeMap[toNormalize.name];
 		if (node) {
 			const func = node.onNormalize;
 			if (func) {
@@ -164,14 +165,14 @@ export default class OmniKernel {
 	}
 
 	delete(toDelete: Facade) {
-		const realToDelete = this.facadeMap.get(toDelete.name) as FacadeElement & FacadeUnit;
+		const realToDelete = this.facadeMap[toDelete.name] as FacadeElement & FacadeUnit;
 		if (!realToDelete) return;
 		if (realToDelete.onDisconnected) realToDelete.onDisconnected();
 		if (realToDelete.dispose) realToDelete.dispose();
 		Object.values(toDelete).forEach(element => {
 			this.delete(element);
 		});
-		this.facadeMap.delete(toDelete.name);
+		delete this.facadeMap[toDelete.name];
 		const parent = realToDelete.facades?.[1];
 		if (parent) delete parent[realToDelete.facadeName];
 	}
@@ -250,7 +251,7 @@ function generateId(length = 10) {
 function facadeFunc(facadeMap: FacadeMap, funcName: string = generateId()) {
 	const middleware = {
 		[funcName](...args: Array<unknown>) {
-			const node = facadeMap.get(funcName);
+			const node = facadeMap[funcName];
 			if (!node) {
 				console.warn(`[OmniKernel] "${funcName}" is a placeholder facade.`);
 				return;

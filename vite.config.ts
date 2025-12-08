@@ -12,7 +12,6 @@ export default defineConfig({
 			fileName: format => `index.${format === 'cjs' ? 'cjs' : 'js'}`,
 		},
 		rollupOptions: {
-			// Externalize dependencies that shouldn't be bundled
 			output: {
 				plugins: [terser()],
 			},

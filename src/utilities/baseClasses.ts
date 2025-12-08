@@ -51,7 +51,7 @@ export abstract class FacadeUnit {
 		this.deps = args[1];
 		this.Kernel = args[2];
 		Object.assign(this.meta, args[3]);
-		args[4].set(this.facade.name, this);
+		args[4][this.facade.name] = this;
 	}
 
 	// metadata
