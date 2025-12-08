@@ -1,6 +1,5 @@
 /// <reference types="vitest/config" />
 import { resolve } from 'node:path';
-import terser from '@rollup/plugin-terser';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -11,19 +10,13 @@ export default defineConfig({
 			formats: ['es', 'cjs'],
 			fileName: format => `index.${format === 'cjs' ? 'cjs' : 'js'}`,
 		},
-		rollupOptions: {
-			output: {
-				plugins: [terser()],
-			},
-		},
 		emptyOutDir: true,
 		sourcemap: true,
-		minify: 'esbuild',
+		minify: 'terser',
 	},
 	resolve: {
 		alias: {
 			'@': resolve(__dirname, 'src/'),
 		},
 	},
-	test: {},
 });
