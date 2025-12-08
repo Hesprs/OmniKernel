@@ -37,5 +37,6 @@ declare global {
 		(...args: Array<unknown>): unknown;
 		[key: Indexable]: Facade;
 	};
+	type UnitConstructor = { new (...args: UnitArgs): FacadeUnit };
 	type UnitArgs = [Facade, Record<string, Facade>, OmniKernel, Meta | undefined, FacadeMap];
 }

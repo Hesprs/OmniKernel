@@ -3,10 +3,19 @@ import { FacadeElement } from '@/utilities/baseClasses';
 
 export default class Runner extends FacadeElement {
 	run: GeneralFunction;
-	constructor(func: GeneralFunction, options?: { immutable?: boolean; silent?: boolean }) {
+	constructor(
+		func: GeneralFunction,
+		options?: { immutable?: boolean; silent?: boolean; immediate?: boolean; async?: boolean },
+	) {
 		super();
 		this.run = func;
-		if (options) Object.assign(this.meta, options);
+		if (options) {
+			Object.assign(this.meta, options);
+			if (options.immediate) {
+				if (options.async) (async () => await func())();
+				else func();
+			}
+		}
 	}
 	set(newFunc: GeneralFunction) {
 		if (this.meta.immutable) {
@@ -22,5 +31,7 @@ export default class Runner extends FacadeElement {
 	meta = {
 		immutable: false,
 		silent: false,
+		async: false,
+		immediate: false,
 	};
 }

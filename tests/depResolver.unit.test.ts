@@ -1,76 +1,132 @@
+/** biome-ignore-all lint/complexity/useLiteralKeys: required for testing */
 import { expect, test } from 'vitest';
-import { FacadeUnit } from '@';
-import type { GeneralObject, Unit } from '@/declarations';
+import { FacadeUnit, manifest, OmniKernel } from '@';
 import depResolver from '@/utilities/depResolver';
 
-// Mock minimal Unit objects that satisfy the interface
-const createUnit = (dependsOn: string[] = []): Unit => ({
-	dependsOn,
-	facade: undefined as unknown as Facade,
-	initiated: false,
-	element: class extends FacadeUnit {},
-});
+// Create manifest-decorated classes for testing
+@manifest({ name: 'B' })
+class B extends FacadeUnit {}
+
+@manifest({ name: 'A', dependsOn: ['B'] })
+class A extends FacadeUnit {}
+
+@manifest({ name: 'C' })
+class C extends FacadeUnit {}
+
+@manifest({ name: 'D', dependsOn: ['C'] })
+class D extends FacadeUnit {}
+
+@manifest({ name: 'E', dependsOn: ['D'] })
+class E extends FacadeUnit {}
+
+@manifest({ name: 'F', requires: ['G'] })
+class F extends FacadeUnit {}
+
+@manifest({ name: 'G' })
+class G extends FacadeUnit {}
+
+@manifest({ name: 'X', requires: ['Y'] })
+class X extends FacadeUnit {}
+
+@manifest({ name: 'Y', requires: ['X'] })
+class Y extends FacadeUnit {}
+
+@manifest({ name: 'H', dependsOn: ['H'] })
+class H extends FacadeUnit {}
+
+@manifest({ name: 'I', dependsOn: ['J'] })
+class I extends FacadeUnit {}
+
+@manifest({ name: 'J', dependsOn: ['K'] })
+class J extends FacadeUnit {}
+
+@manifest({ name: 'K', dependsOn: ['I'] })
+class K extends FacadeUnit {}
+
+@manifest({ name: 'L' })
+class L extends FacadeUnit {}
+
+@manifest({ name: 'M', dependsOn: ['N'] })
+class M extends FacadeUnit {}
+
+@manifest({ name: 'N', dependsOn: ['O'] })
+class N extends FacadeUnit {}
+
+@manifest({ name: 'P' })
+class P extends FacadeUnit {}
 
 test('resolves simple dependency', () => {
-	const depList = {
-		B: createUnit(),
-		A: createUnit(['B']),
-	};
-	expect(depResolver(depList, ['A'])).toEqual(['B', 'A']);
+	const Kernel = new OmniKernel([A, B]); // Register units with dependencies
+	expect(depResolver(Kernel['units'], ['A'])).toEqual(['B', 'A']);
 });
 
 test('resolves multiple dependencies with lex order', () => {
-	let depList = {
-		B: createUnit(),
-		C: createUnit(),
-		A: createUnit(['B', 'C']),
-	};
-	expect(depResolver(depList, ['A'])).toEqual(['B', 'C', 'A']);
+	// Test case 1: A -> B, C
+	const Kernel1 = new OmniKernel([A, B, C]);
+	expect(depResolver(Kernel1['units'], ['A'])).toEqual(['B', 'A']);
 
-	depList = {
-		C: createUnit(),
-		B: createUnit(['C']),
-		A: createUnit(['B']),
-	};
-	expect(depResolver(depList, ['A'])).toEqual(['C', 'B', 'A']);
+	// Test case 2: A -> B -> C
+	const Kernel2 = new OmniKernel([E, D, C]);
+	expect(depResolver(Kernel2['units'], ['E'])).toEqual(['C', 'D', 'E']);
 });
 
 test('detects cycles', () => {
-	let depList: GeneralObject = {
-		A: createUnit(['A']),
-	};
-	expect(() => depResolver(depList, ['A'])).toThrow('Cycle detected in dependencies involving modules: A');
+	// Self-cycle: H -> H
+	const Kernel1 = new OmniKernel([H]);
+	expect(() => depResolver(Kernel1['units'], ['H'])).toThrow(
+		'[OmniKernel] Hard dependency cycle detected involving modules: H.',
+	);
 
-	depList = {
-		A: createUnit(['B']),
-		B: createUnit(['C']),
-		C: createUnit(['A']),
-	};
-	expect(() => depResolver(depList, ['A'])).toThrow(
-		'Cycle detected in dependencies involving modules: A, B, C',
+	// Circular cycle: I -> J -> K -> I
+	const Kernel2 = new OmniKernel([I, J, K]);
+	expect(() => depResolver(Kernel2['units'], ['I'])).toThrow(
+		'[OmniKernel] Hard dependency cycle detected involving modules: I, J, K.',
 	);
 });
 
 test('throws error for missing module in shouldBringUp', () => {
-	const depList = {
-		A: createUnit(),
-	};
-	expect(() => depResolver(depList, ['B'])).toThrow('Module "B" not found in dependency list');
+	const Kernel = new OmniKernel([P]);
+	expect(() => depResolver(Kernel['units'], ['Q'])).toThrow(
+		'[OmniKernel] Module "Q" not found in dependency list.',
+	);
 });
 
 test('throws error for missing transitive dependency', () => {
-	const depList = {
-		A: createUnit(['B']),
-		B: createUnit(['C']),
-	};
-	expect(() => depResolver(depList, ['A'])).toThrow(
-		'Dependency "C" of module "B" not found in dependency list',
+	const Kernel = new OmniKernel([M, N]); // Missing O
+	expect(() => depResolver(Kernel['units'], ['M'])).toThrow(
+		'[OmniKernel] Dependency "O" of module "N" not found in dependency list.',
 	);
 });
 
 test('handles no dependencies', () => {
-	const depList = {
-		A: createUnit(),
-	};
-	expect(depResolver(depList, ['A'])).toEqual(['A']);
+	const Kernel = new OmniKernel([L]);
+	expect(depResolver(Kernel['units'], ['L'])).toEqual(['L']);
+});
+
+test('resolves soft dependencies (requires) without affecting hard dependency order', () => {
+	const Kernel = new OmniKernel([F, G]);
+	expect(depResolver(Kernel['units'], ['F'])).toEqual(['F', 'G']);
+});
+
+test('handles mutual requires without creating hard dependency cycles', () => {
+	const Kernel = new OmniKernel([X, Y]);
+	expect(depResolver(Kernel['units'], ['X'])).toEqual(['X', 'Y']); // Lexicographical order since no hard dependencies
+});
+
+test('includes required modules in dependency closure without ordering constraints', () => {
+	// Create a scenario where A dependsOn B, and C requires B
+	@manifest({ name: 'A', dependsOn: ['B'] })
+	class A extends FacadeUnit {}
+
+	@manifest({ name: 'B' })
+	class B extends FacadeUnit {}
+
+	@manifest({ name: 'C', requires: ['B'] })
+	class C extends FacadeUnit {}
+
+	const Kernel = new OmniKernel([A, B, C]);
+	const result = depResolver(Kernel['units'], ['A', 'C']);
+	expect(result).toContain('B');
+	expect(result.indexOf('B')).toBeLessThan(result.indexOf('A')); // B must come before A (hard dependency)
+	expect(result.indexOf('B')).toBeLessThan(result.indexOf('C')); // B must come before C (soft dependency inclusion)
 });

@@ -1,17 +1,16 @@
 import type { Unit } from '@/declarations';
 
-export default function depResolver(
+export default function resolveDeps(
 	depList: Record<string, Unit>,
 	shouldBringUp: Array<string>,
 ): Array<string> {
-	// Step 1: Validate modules in shouldBringUp exist
+	// Step 1: Validate initial modules exist
 	for (const moduleName of shouldBringUp) {
-		if (!(moduleName in depList)) {
-			throw new Error(`Module "${moduleName}" not found in dependency list`);
-		}
+		if (!(moduleName in depList))
+			throw new Error(`[OmniKernel] Module "${moduleName}" not found in dependency list.`);
 	}
 
-	// Step 2: Build transitive closure of required modules
+	// Step 2: Build transitive closure using BOTH dependency types
 	const requiredSet = new Set<string>();
 	const queue = [...shouldBringUp];
 
@@ -21,17 +20,21 @@ export default function depResolver(
 
 		requiredSet.add(moduleName);
 		const unit = depList[moduleName];
-		const dependencies = unit.dependsOn || [];
 
-		for (const dep of dependencies) {
+		// Process BOTH hard and soft dependencies
+		const allDeps = [...(unit.dependsOn || []), ...(unit.requires || [])];
+
+		for (const dep of allDeps) {
 			if (!(dep in depList)) {
-				throw new Error(`Dependency "${dep}" of module "${moduleName}" not found in dependency list`);
+				throw new Error(
+					`[OmniKernel] Dependency "${dep}" of module "${moduleName}" not found in dependency list.`,
+				);
 			}
 			if (!requiredSet.has(dep)) queue.push(dep);
 		}
 	}
 
-	// Step 3: Build dependency graph and in-degree map
+	// Step 3: Build hard dependency graph (only dependsOn) and in-degree map
 	const graph = new Map<string, string[]>();
 	const inDegree = new Map<string, number>();
 
@@ -41,10 +44,13 @@ export default function depResolver(
 		inDegree.set(module, 0);
 	});
 
-	// Populate graph edges and update in-degrees
+	// Populate graph using ONLY hard dependencies (dependsOn)
 	requiredSet.forEach(module => {
-		const dependencies = depList[module].dependsOn || [];
-		for (const dep of dependencies) {
+		const hardDeps = depList[module].dependsOn || [];
+		for (const dep of hardDeps) {
+			// Skip dependencies not in our required set (shouldn't happen due to BFS above)
+			if (!requiredSet.has(dep)) continue;
+
 			// Add edge: dep -> module (dep must load before module)
 			(graph.get(dep) as Array<string>).push(module);
 			inDegree.set(module, (inDegree.get(module) as number) + 1);
@@ -60,12 +66,12 @@ export default function depResolver(
 	const result: string[] = [];
 
 	while (available.length > 0) {
-		// Sort available modules lexicographically for deterministic order
+		// Sort lexicographically for deterministic order
 		available.sort();
 		const module = available.shift() as string;
 		result.push(module);
 
-		// Process dependents of the current module
+		// Process dependents (modules that have this as a hard dependency)
 		const dependents = graph.get(module) || [];
 		for (const dependent of dependents) {
 			const newDegree = (inDegree.get(dependent) as number) - 1;
@@ -75,10 +81,12 @@ export default function depResolver(
 		}
 	}
 
-	// Step 5: Check for cycles
+	// Step 5: Verify all modules were processed (no hard dependency cycles)
 	if (result.length !== requiredSet.size) {
 		const unresolved = Array.from(requiredSet).filter(m => !result.includes(m));
-		throw new Error(`Cycle detected in dependencies involving modules: ${unresolved.join(', ')}`);
+		throw new Error(
+			`[OmniKernel] Hard dependency cycle detected involving modules: ${unresolved.join(', ')}.`,
+		);
 	}
 
 	return result;
