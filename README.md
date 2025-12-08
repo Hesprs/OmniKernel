@@ -1,4 +1,4 @@
-# OmniKernel v0.3.1
+# OmniKernel v0.3.2
 
 [![Codecov](https://img.shields.io/codecov/c/github/hesprs/omnikernel/main?style=flat&logo=codecov&logoColor=white&label=Test%20Coverage&labelColor=ff0077&color=333333)](https://codecov.io/github/Hesprs/OmniKernel)
 [![CodeFactor](https://img.shields.io/codefactor/grade/github/hesprs/omnikernel?style=flat&logo=codefactor&logoColor=white&label=Code%20Quality&labelColor=17b37a&color=333333

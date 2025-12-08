@@ -19,7 +19,10 @@ test('Runner can update its function with set()', () => {
 });
 
 test('Runner respects immutable flag and prevents updates', () => {
-	const runner = new Runner(sampleFunc, { immutable: true });
+	const monitoredFunc = vi.fn(sampleFunc);
+	const runner = new Runner(monitoredFunc, { immutable: true, immediate: true });
+	// immediate flag should trigger the function to run immediately
+	expect(monitoredFunc).toBeCalled();
 	// Capture console.warn calls
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	runner.set(newFunc);

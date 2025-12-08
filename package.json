@@ -1,6 +1,6 @@
 {
 	"name": "omnikernel",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"type": "module",
 	"description": "The ultimate modularity orchestrator that streamlines EVERYTHING.",
 	"types": "./dist/types/index.d.ts",
