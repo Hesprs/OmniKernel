@@ -1,8 +1,8 @@
 {
 	"name": "omnikernel",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"type": "module",
-	"description": "The ultimate modular architecture container that streamlines EVERYTHING.",
+	"description": "The ultimate modularity orchestrator that streamlines EVERYTHING.",
 	"types": "./dist/types/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",

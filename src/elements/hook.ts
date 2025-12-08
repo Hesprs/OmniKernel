@@ -1,4 +1,4 @@
-import type { Arguments } from '@/declarations';
+import type { GeneralArguments } from '@/declarations';
 import { FacadeElement } from '@/utilities/baseClasses';
 
 export default class Hook extends FacadeElement {
@@ -6,7 +6,7 @@ export default class Hook extends FacadeElement {
 		super();
 		if (options) Object.assign(this.meta, options);
 	}
-	run = (...args: Arguments) => {
+	run = (...args: GeneralArguments) => {
 		const children = this.facades[0];
 		if (this.meta.async) {
 			Object.values(children).forEach(async func => {
