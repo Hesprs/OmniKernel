@@ -6,9 +6,7 @@
 	"types": "./dist/types/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
-	"files": [
-		"./dist"
-	],
+	"files": ["./dist"],
 	"scripts": {
 		"build": "vite build && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
 		"test": "vitest run",
@@ -24,14 +22,7 @@
 	"bugs": {
 		"url": "https://github.com/Hesprs/OmniKernel/issues"
 	},
-	"keywords": [
-		"architecture",
-		"modular",
-		"microkernel",
-		"IPC",
-		"TypeScript",
-		"dependency-injection"
-	],
+	"keywords": ["architecture", "modular", "microkernel", "IPC", "TypeScript", "dependency-injection"],
 	"author": {
 		"name": "Hēsperus",
 		"email": "hesprs@outlook.com"
