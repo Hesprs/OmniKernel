@@ -34,16 +34,13 @@ jobs:
 
       - name: Detect relevant changes
         id: changes
-        run: |
-          # Get list of changed files
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-
-          # Check if any changed file is in src/ or test/
-          if echo "$changed_files" | grep -E '^(src|test)/'; then
-            echo "needs_test=true" >> $GITHUB_OUTPUT
-          else
-            echo "needs_test=false" >> $GITHUB_OUTPUT
-          fi
+        run: bash ./.github/scripts/detect_changes.sh
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name || '' }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
 
       - name: Run checks
         run: pnpm check

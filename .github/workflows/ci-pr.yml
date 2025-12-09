@@ -35,7 +35,7 @@ jobs:
 
       - name: Detect relevant changes
         id: changes
-        run: bash ../scripts/detect_changes.sh
+        run: bash ./.github/scripts/detect_changes.sh
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
