@@ -274,7 +274,7 @@ test('dependency resolution', () => {
 	expect(test3OnConnected).toHaveBeenCalled();
 	expect(test2OnConnected).toHaveBeenCalledAfter(test1OnConnected);
 	expect(test3OnConnected).toHaveBeenCalledAfter(test2OnConnected);
-	expect(Kernel.listRunningUnits().includes('test1')).toBe(true);
+	expect('test1' in Kernel.getRunningUnits()).toBe(true);
 
 	Kernel.shutDown(); // correct order:  test3, test2, test1
 	expect(test3OnDisconnected).toHaveBeenCalled();
@@ -282,5 +282,5 @@ test('dependency resolution', () => {
 	expect(test1OnDisconnected).toHaveBeenCalled();
 	expect(test2OnDisconnected).toHaveBeenCalledBefore(test1OnDisconnected);
 	expect(test3OnDisconnected).toHaveBeenCalledBefore(test2OnDisconnected);
-	expect(Kernel.listRunningUnits()[0]).toBeUndefined();
+	expect(Object.keys(Kernel.getRunningUnits()).length).toBe(0);
 });

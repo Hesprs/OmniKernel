@@ -177,11 +177,11 @@ export default class OmniKernel {
 		if (parent) delete parent[realToDelete.facadeName];
 	}
 
-	listRunningUnits() {
-		const result: Array<string> = [];
+	getRunningUnits() {
+		const result: Record<string, Facade> = {};
 		Object.keys(this.units).forEach(unitName => {
 			const unit = this.units[unitName];
-			if (unit.initiated) result.push(unitName);
+			if (unit.initiated) result[unitName] = unit.facade;
 		});
 		return result;
 	}

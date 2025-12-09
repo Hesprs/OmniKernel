@@ -20,5 +20,5 @@ test('instantiate OmniKernel', () => {
 	expect(Kernel).toHaveProperty('bringUp');
 	expect(Kernel).toHaveProperty('shutDown');
 	expect(Kernel).toHaveProperty('registerCall');
-	expect(Kernel).toHaveProperty('listRunningUnits');
+	expect(Kernel).toHaveProperty('getRunningUnits');
 });
