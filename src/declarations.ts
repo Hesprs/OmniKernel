@@ -1,5 +1,5 @@
 import type OmniKernel from '@/omniKernel';
-import type { FacadeElement, FacadeUnit } from '@/utilities/baseClasses';
+import type { OmniFacadeElement, OmniUnit } from '@/utilities/baseClasses';
 
 // biome-ignore lint/suspicious/noExplicitAny: General Type
 export type GeneralArguments = Array<any>;
@@ -10,13 +10,13 @@ export type GeneralConstructor<T> = new (...args: GeneralArguments) => T;
 export type GeneralObject = Record<Indexable, any>;
 export type Indexable = string | number | symbol;
 export type labelerResult = 'preserved' | 'store' | 'runner';
-export type FacadeMap = Record<string, FacadeElement | FacadeUnit>;
+export type FacadeMap = Record<string, OmniFacadeElement | OmniUnit>;
 export type Unit = {
 	dependsOn?: Array<string>;
 	requires?: Array<string>;
 	facade: Facade;
 	initiated: boolean;
-	element: GeneralConstructor<FacadeUnit>;
+	element: GeneralConstructor<OmniUnit>;
 };
 export type Meta = {
 	moduleName?: string;
@@ -37,6 +37,6 @@ declare global {
 		(...args: Array<unknown>): unknown;
 		[key: Indexable]: Facade;
 	};
-	type UnitConstructor = { new (...args: UnitArgs): FacadeUnit };
+	type UnitConstructor = { new (...args: UnitArgs): OmniUnit };
 	type UnitArgs = [Facade, Record<string, Facade>, OmniKernel, Meta | undefined, FacadeMap];
 }

@@ -1,59 +1,59 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: required for testing */
 import { expect, test } from 'vitest';
-import { FacadeUnit, manifest, OmniKernel } from '@';
+import { manifest, OmniKernel, OmniUnit } from '@';
 import depResolver from '@/utilities/depResolver';
 
 // Create manifest-decorated classes for testing
 @manifest({ name: 'B' })
-class B extends FacadeUnit {}
+class B extends OmniUnit {}
 
 @manifest({ name: 'A', dependsOn: ['B'] })
-class A extends FacadeUnit {}
+class A extends OmniUnit {}
 
 @manifest({ name: 'C' })
-class C extends FacadeUnit {}
+class C extends OmniUnit {}
 
 @manifest({ name: 'D', dependsOn: ['C'] })
-class D extends FacadeUnit {}
+class D extends OmniUnit {}
 
 @manifest({ name: 'E', dependsOn: ['D'] })
-class E extends FacadeUnit {}
+class E extends OmniUnit {}
 
 @manifest({ name: 'F', requires: ['G'] })
-class F extends FacadeUnit {}
+class F extends OmniUnit {}
 
 @manifest({ name: 'G' })
-class G extends FacadeUnit {}
+class G extends OmniUnit {}
 
 @manifest({ name: 'X', requires: ['Y'] })
-class X extends FacadeUnit {}
+class X extends OmniUnit {}
 
 @manifest({ name: 'Y', requires: ['X'] })
-class Y extends FacadeUnit {}
+class Y extends OmniUnit {}
 
 @manifest({ name: 'H', dependsOn: ['H'] })
-class H extends FacadeUnit {}
+class H extends OmniUnit {}
 
 @manifest({ name: 'I', dependsOn: ['J'] })
-class I extends FacadeUnit {}
+class I extends OmniUnit {}
 
 @manifest({ name: 'J', dependsOn: ['K'] })
-class J extends FacadeUnit {}
+class J extends OmniUnit {}
 
 @manifest({ name: 'K', dependsOn: ['I'] })
-class K extends FacadeUnit {}
+class K extends OmniUnit {}
 
 @manifest({ name: 'L' })
-class L extends FacadeUnit {}
+class L extends OmniUnit {}
 
 @manifest({ name: 'M', dependsOn: ['N'] })
-class M extends FacadeUnit {}
+class M extends OmniUnit {}
 
 @manifest({ name: 'N', dependsOn: ['O'] })
-class N extends FacadeUnit {}
+class N extends OmniUnit {}
 
 @manifest({ name: 'P' })
-class P extends FacadeUnit {}
+class P extends OmniUnit {}
 
 test('resolves simple dependency', () => {
 	const Kernel = new OmniKernel([A, B]); // Register units with dependencies
@@ -116,13 +116,13 @@ test('handles mutual requires without creating hard dependency cycles', () => {
 test('includes required modules in dependency closure without ordering constraints', () => {
 	// Create a scenario where A dependsOn B, and C requires B
 	@manifest({ name: 'A', dependsOn: ['B'] })
-	class A extends FacadeUnit {}
+	class A extends OmniUnit {}
 
 	@manifest({ name: 'B' })
-	class B extends FacadeUnit {}
+	class B extends OmniUnit {}
 
 	@manifest({ name: 'C', requires: ['B'] })
-	class C extends FacadeUnit {}
+	class C extends OmniUnit {}
 
 	const Kernel = new OmniKernel([A, B, C]);
 	const result = depResolver(Kernel['units'], ['A', 'C']);

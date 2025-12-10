@@ -11,7 +11,7 @@ import type {
 } from '@/declarations';
 import Runner from '@/elements/runner';
 import Store from '@/elements/store';
-import type { FacadeElement, FacadeUnit } from '@/utilities/baseClasses';
+import type { OmniFacadeElement, OmniUnit } from '@/utilities/baseClasses';
 import depResolver from '@/utilities/depResolver';
 import { getManifest } from '@/utilities/manifest';
 import { tokenizer } from '@/utilities/tokenizer';
@@ -20,7 +20,7 @@ export default class OmniKernel {
 	// Objects are more optimized for string lookup (although insignificant)
 	private facadeMap: FacadeMap = Object.create(null);
 
-	constructor(toRecord?: Array<GeneralConstructor<FacadeUnit>>) {
+	constructor(toRecord?: Array<GeneralConstructor<OmniUnit>>) {
 		if (toRecord)
 			toRecord.forEach(unit => {
 				this.record(unit);
@@ -29,7 +29,7 @@ export default class OmniKernel {
 
 	// #region units
 	private units: Record<string, Unit> = {};
-	record(element: GeneralConstructor<FacadeUnit>) {
+	record(element: GeneralConstructor<OmniUnit>) {
 		const manifest = getManifest(element) as Manifest;
 		if (!manifest)
 			throw new Error(
@@ -88,14 +88,14 @@ export default class OmniKernel {
 	// register an element at a given path
 	private registerAt(
 		facades: Array<Facade>,
-		element: FacadeElement,
+		element: OmniFacadeElement,
 		keyName: string,
 		additionalMeta?: Meta,
 	) {
 		if (additionalMeta) Object.assign(element.meta, additionalMeta);
 
 		const id = facades[0].name;
-		const toReplace = this.facadeMap[id] as FacadeElement;
+		const toReplace = this.facadeMap[id] as OmniFacadeElement;
 		if (toReplace?.meta.irreplaceable) {
 			if (!toReplace.meta.silent) console.warn(`[OmniKernel] Element "${keyName}" is irreplaceable.`);
 			return;
@@ -165,7 +165,7 @@ export default class OmniKernel {
 	}
 
 	delete(toDelete: Facade) {
-		const realToDelete = this.facadeMap[toDelete.name] as FacadeElement & FacadeUnit;
+		const realToDelete = this.facadeMap[toDelete.name] as OmniFacadeElement & OmniUnit;
 		if (!realToDelete) return;
 		if (realToDelete.onDisconnected) realToDelete.onDisconnected();
 		if (realToDelete.dispose) realToDelete.dispose();
@@ -184,6 +184,10 @@ export default class OmniKernel {
 			if (unit.initiated) result[unitName] = unit.facade;
 		});
 		return result;
+	}
+
+	getElementInstance(facade: Facade): OmniFacadeElement | OmniUnit | undefined {
+		return this.facadeMap[facade.name];
 	}
 	// #endregion ===============================================================
 
@@ -214,7 +218,7 @@ export default class OmniKernel {
 
 // copy give context to an element when added into facade
 function injector(
-	element: FacadeElement,
+	element: OmniFacadeElement,
 	context: {
 		facades: Array<Facade>;
 		Kernel: OmniKernel;
@@ -231,7 +235,7 @@ function injector(
 function allocator(label: labelerResult, value: unknown) {
 	switch (label) {
 		case 'preserved':
-			return value as FacadeElement;
+			return value as OmniFacadeElement;
 		case 'store':
 			return new Store(value);
 		case 'runner':

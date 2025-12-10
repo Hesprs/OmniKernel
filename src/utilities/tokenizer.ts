@@ -1,5 +1,5 @@
 import type { GeneralObject, labelerResult } from '@/declarations';
-import { FacadeElement } from '@/utilities/baseClasses';
+import { OmniFacadeElement } from '@/utilities/baseClasses';
 
 function isObject(toCheck: unknown) {
 	return typeof toCheck === 'object' && toCheck !== null && !Array.isArray(toCheck);
@@ -28,7 +28,7 @@ export function tokenizer(toTokenize: unknown, currentPath: Array<string> = []) 
 
 function labeler(toLabel: unknown, isObj: boolean = isObject(toLabel)) {
 	if (isObj) {
-		if (toLabel instanceof FacadeElement) return 'preserved';
+		if (toLabel instanceof OmniFacadeElement) return 'preserved';
 		if (typeof Element !== 'undefined' && toLabel instanceof Element) return 'store';
 		return 'placeholder';
 	} else {

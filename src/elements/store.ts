@@ -1,6 +1,6 @@
-import { FacadeElement } from '@/utilities/baseClasses';
+import { OmniFacadeElement } from '@/utilities/baseClasses';
 
-export default class Store extends FacadeElement {
+export default class Store extends OmniFacadeElement {
 	value: unknown = null;
 	constructor(toStore: unknown, options?: { immutable?: boolean; silent?: boolean }) {
 		super();

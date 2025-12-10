@@ -5,5 +5,5 @@ export { default as Reactive } from '@/elements/reactive';
 export { default as Runner } from '@/elements/runner';
 export { default as Store } from '@/elements/store';
 export { default as OmniKernel } from '@/omniKernel';
-export { FacadeElement, FacadeUnit } from '@/utilities/baseClasses';
+export { OmniFacadeElement, OmniUnit } from '@/utilities/baseClasses';
 export { manifest } from '@/utilities/manifest';
