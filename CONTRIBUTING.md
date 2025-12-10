@@ -83,6 +83,12 @@ This project has two CI pipelines:
 - `ci-main.yml`: runs on every push to main branch, which is used for coverage reporting
 - `ci-pr.yml`: runs on every pull request that you will be majorly dealing with, which is used for testing pull requests
 
+What our CI checks:
+- lint
+- types
+- test build
+- (if `/src` or `/tests` changes) tests
+
 ## Documentation
 
 - Update relevant documentation when adding new features
