@@ -4,7 +4,7 @@ import type OmniKernel from '@/omniKernel';
 const notInTreeError = (name: string) =>
 	new Error(`[OmniKernel] Cannot get ${name} since the element is not yet in the facade tree.`);
 
-export abstract class FacadeElement {
+export abstract class OmniFacadeElement {
 	// facade tree injections
 	readonly facadeInjections: {
 		facades: Array<Facade> | undefined;
@@ -41,7 +41,7 @@ export abstract class FacadeElement {
 	}
 }
 
-export abstract class FacadeUnit {
+export abstract class OmniUnit {
 	facade: Facade;
 	Kernel: OmniKernel;
 	deps: Record<string, Facade>;

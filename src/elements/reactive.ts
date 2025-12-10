@@ -1,6 +1,6 @@
-import { FacadeElement } from '@/utilities/baseClasses';
+import { OmniFacadeElement } from '@/utilities/baseClasses';
 
-export default class Reactive extends FacadeElement {
+export default class Reactive extends OmniFacadeElement {
 	value: unknown = undefined;
 
 	constructor(initialValue: unknown, options?: { async?: boolean; immutable?: boolean; silent?: boolean }) {

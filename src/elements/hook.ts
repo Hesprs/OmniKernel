@@ -1,7 +1,7 @@
 import type { GeneralArguments } from '@/declarations';
-import { FacadeElement } from '@/utilities/baseClasses';
+import { OmniFacadeElement } from '@/utilities/baseClasses';
 
-export default class Hook extends FacadeElement {
+export default class Hook extends OmniFacadeElement {
 	constructor(options?: { async: boolean }) {
 		super();
 		if (options) Object.assign(this.meta, options);

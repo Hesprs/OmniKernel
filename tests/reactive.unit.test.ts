@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { FacadeUnit, manifest, OmniKernel, Reactive } from '@';
+import { manifest, OmniKernel, OmniUnit, Reactive } from '@';
 
 // Sample values for testing
 const initialValue = 'initial';
@@ -7,7 +7,7 @@ const newValue = 'updated';
 
 test('Reactive respects silent flag when immutable', () => {
 	@manifest({ name: 'ReactiveSilentTest' })
-	class ReactiveSilentTest extends FacadeUnit {
+	class ReactiveSilentTest extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			const reactive = new Reactive(initialValue, { immutable: true });
@@ -35,7 +35,7 @@ test('Reactive respects silent flag when immutable', () => {
 
 test('Reactive set() executes synchronous functions from Facade', () => {
 	@manifest({ name: 'ReactiveSetTest' })
-	class ReactiveSetTest extends FacadeUnit {
+	class ReactiveSetTest extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			const reactive = new Reactive(initialValue);
@@ -78,7 +78,7 @@ test('Reactive set() executes synchronous functions from Facade', () => {
 
 test('Reactive executes asynchronous functions when async meta is true', async () => {
 	@manifest({ name: 'ReactiveAsyncTest' })
-	class ReactiveAsyncTest extends FacadeUnit {
+	class ReactiveAsyncTest extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			const reactive = new Reactive(initialValue, { async: true });

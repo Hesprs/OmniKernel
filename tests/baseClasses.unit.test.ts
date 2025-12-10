@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { FacadeElement, type OmniKernel } from '@';
+import { OmniFacadeElement, type OmniKernel } from '@';
 
-class TestFacadeElement extends FacadeElement {}
+class TestFacadeElement extends OmniFacadeElement {}
 
 // Create a minimal mock Facade that satisfies the interface
 const createMockFacade = (): Facade => {

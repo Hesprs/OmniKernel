@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
-import { FacadeUnit, Hook, manifest, OmniKernel } from '@';
+import { Hook, manifest, OmniKernel, OmniUnit } from '@';
 import type { GeneralObject } from '@/declarations';
 
 test('Hook unit Integration', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register(

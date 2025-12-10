@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
-import { FacadeElement, FacadeUnit, manifest, OmniKernel, Store } from '@';
+import { manifest, OmniFacadeElement, OmniKernel, OmniUnit, Store } from '@';
 import type { GeneralObject } from '@/declarations';
 
 test('register a Store element', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register(
@@ -26,7 +26,7 @@ test('register a Store element', () => {
 
 test('register a nested object structure', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register(
@@ -76,7 +76,7 @@ test('register a nested object structure', () => {
 
 test('register a Store with options', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register({ data: 'initial' }, this.facade, { immutable: true, silent: false });
@@ -98,7 +98,7 @@ test('register a Store with options', () => {
 
 test('replace irreplaceable element', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register(
@@ -119,13 +119,13 @@ test('replace irreplaceable element', () => {
 });
 
 test('handle onConnected and facade injection when registering', () => {
-	class TestElement extends FacadeElement {
+	class TestElement extends OmniFacadeElement {
 		CCB = vi.fn();
 		onConnected = this.CCB;
 	}
 
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			const element = new TestElement();
@@ -157,7 +157,7 @@ test('handle onConnected and facade injection when registering', () => {
 
 test('delete a facade', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register({ test: 'test' }, this.facade);
@@ -190,7 +190,7 @@ test('delete a facade', () => {
 
 test('registerCall', () => {
 	@manifest({ name: 'Test' })
-	class Test extends FacadeUnit {
+	class Test extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register(
@@ -229,7 +229,7 @@ test('dependency resolution', () => {
 	const test3OnConnected = vi.fn();
 	const test3OnDisconnected = vi.fn();
 	@manifest({ name: 'test1' })
-	class Test1 extends FacadeUnit {
+	class Test1 extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			test1OnConnected();
@@ -240,7 +240,7 @@ test('dependency resolution', () => {
 		name: 'test2',
 		dependsOn: ['test1'],
 	})
-	class Test2 extends FacadeUnit {
+	class Test2 extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			test2OnConnected();
@@ -251,7 +251,7 @@ test('dependency resolution', () => {
 		name: 'test3',
 		dependsOn: ['test1', 'test2'],
 	})
-	class Test3 extends FacadeUnit {
+	class Test3 extends OmniUnit {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			test3OnConnected();

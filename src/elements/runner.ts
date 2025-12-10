@@ -1,7 +1,7 @@
 import type { GeneralFunction } from '@/declarations';
-import { FacadeElement } from '@/utilities/baseClasses';
+import { OmniFacadeElement } from '@/utilities/baseClasses';
 
-export default class Runner extends FacadeElement {
+export default class Runner extends OmniFacadeElement {
 	run: GeneralFunction;
 	constructor(
 		func: GeneralFunction,
