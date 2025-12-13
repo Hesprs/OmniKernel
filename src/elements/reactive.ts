@@ -1,15 +1,15 @@
 import { OmniFacadeElement } from '@/utilities/baseClasses';
 
-export default class Reactive extends OmniFacadeElement {
-	value: unknown = undefined;
+export default class Reactive<T> extends OmniFacadeElement {
+	value: T;
 
-	constructor(initialValue: unknown, options?: { async?: boolean; immutable?: boolean; silent?: boolean }) {
+	constructor(initialValue: T, options?: { async?: boolean; immutable?: boolean; silent?: boolean }) {
 		super();
 		this.value = initialValue;
 		if (options) Object.assign(this.meta, options);
 	}
 
-	set(newValue: unknown) {
+	set(newValue: T) {
 		if (this.meta.immutable) {
 			if (!this.meta.silent) console.warn('[OmniKernel] Reactive value cannot be changed.');
 			return;
@@ -37,9 +37,9 @@ export default class Reactive extends OmniFacadeElement {
 		silent: false,
 	};
 
-	facadeOverride = (newValue?: unknown) => {
+	facadeOverride = (newValue?: T) => {
 		if (newValue !== undefined) this.set(newValue);
-		else return this.value;
+		return this.value;
 	};
 	onNormalize = () => this.value;
 }

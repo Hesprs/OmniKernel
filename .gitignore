@@ -5,6 +5,10 @@ node_modules
 .cursor
 .continue
 
+# generated files
+*.js
+omniTypes.ts
+
 # Logs
 logs
 *.log

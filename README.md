@@ -18,21 +18,19 @@
 </p>
 
 <p align="center">
-  <a href="#✒️-brief-introduction">Introduction</a> •
-  <a href="#🎬-quick-start">Quick Start</a> •
-  <a href="#🖐️-get-involved">Get Involved</a> •
-  <a href="#📜-license-and-copyright">License</a>
+  <a href="#️-brief-introduction">Introduction</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-get-involved">Get Involved</a> •
+  <a href="#-license-and-copyright">License</a>
 </p>
 
 ## ✒️ Brief Introduction
 
-As your app grows, you may find yourself swimming in a sea of "spaghetti" code that intertwine with each other, each part with its unique states, APIs and lifecycles. You become overwhelmed, and the project becomes difficult to understand, maintain or extend.
+As your apps grow, they often drown in "spaghetti" code — entangled states, APIs, and lifecycles that become impossible to maintain or extend.
 
-`OmniKernel` comes to be a lightweight TypeScript-native orchestration framework that solves all the issues above. It unifies **dependency injection**, **standardized facade pattern**, **modular architecture**, **state management**, and **lifecycle management**, streamlining the development of **modularized, reusable, and extensible** applications. It is applicable to any development scenarios: front-end, back-end, or even operating systems.
+`OmniKernel` cuts through the chaos: a lightweight TypeScript framework unifying **dependency injection**, **standardized facades**, **modular architecture**, and **state/lifecycle management**. Build truly modular, extensible applications for any environment — frontend, backend, or OS kernels.
 
-The basic functioning piece in `OmniKernel` is a `OmniUnit`, which is an extensible base class that your logic resides. These units would be passed into the kernel to be loaded dynamically with DI during runtime. After instantiation, each unit is allocated a DOM-like facade tree, which is a key innovation of `OmniKernel`.
-
-Each facade is a function-based tree where functions contain functions as their properties, which means a container function can be both executable and traversable. Underlying each function comes the `OmniFacadeElement`, akin to `HTMLElement`, which is extended for infinite functionalities, e.g. hooks, reactive stores, and your own customizations.
+Core to `OmniKernel` are `OmniUnit` classes for your app logic. Dynamically loaded with DI, each unit receives a DOM-like **facade tree** — our key innovation. Here, functions nest executable and traversable properties via `OmniFacadeElement` (think `HTMLElement`), enabling infinite extensibility through hooks, stores, and custom behaviors.
 
 ## 🎬 Quick Start
 
@@ -58,13 +56,13 @@ Or via CDN:
 <script src="https://cdn.jsdelivr.net/npm/omnikernel@latest/dist/index.cjs"></script>
 ```
 
-## 🖐️ Get Involved
+## 🤝 Get Involved
 
 This project welcomes anyone that have ideas to improve it.
 
 - [Read contributing guidelines](./CONTRIBUTING.md) before submitting a pull request.
 - [Open an issue](https://github.com/hesprs/omnikernel/issues/new) if you find a bug.
-- [Start a new thread in Discussions](https://github.com/hesprs/omnikernel/discussions/new) if you have a feature requests or questions, please avoid posting them in Issues.
+- [Start a new thread in Discussions](https://github.com/hesprs/omnikernel/discussions/new) if you have feature requests or questions, please avoid posting them in Issues.
 - [Report a vulnerability](https://github.com/hesprs/omnikernel/security/advisories/new) if you find one, please do not disclose it publicly.
 
 ## 📜 License and Copyright

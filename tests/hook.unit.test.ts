@@ -4,7 +4,7 @@ import type { GeneralObject } from '@/declarations';
 
 test('Hook unit Integration', () => {
 	@manifest({ name: 'Test' })
-	class Test extends OmniUnit {
+	class Test extends OmniUnit<UnitArgs> {
 		constructor(...args: UnitArgs) {
 			super(...args);
 			this.Kernel.register(

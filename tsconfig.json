@@ -9,11 +9,14 @@
 		"forceConsistentCasingInFileNames": true,
 		"noEmit": true,
 		"lib": ["ESNext", "DOM"],
+		"types": ["node"],
+		"allowImportingTsExtensions": true,
 		"paths": {
 			"@/*": ["./src/*"],
-			"@": ["./src"]
+			"@": ["./src"],
+			"omnikernel": ["./src/index.ts"]
 		}
 	},
-	"include": ["src/**/*", "tests/**/*"],
+	"include": ["src/**/*", "tests/**/*", "omniTypes.ts"],
 	"exclude": ["node_modules", "./dist"]
 }

@@ -5,55 +5,55 @@ import depResolver from '@/utilities/depResolver';
 
 // Create manifest-decorated classes for testing
 @manifest({ name: 'B' })
-class B extends OmniUnit {}
+class B extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'A', dependsOn: ['B'] })
-class A extends OmniUnit {}
+class A extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'C' })
-class C extends OmniUnit {}
+class C extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'D', dependsOn: ['C'] })
-class D extends OmniUnit {}
+class D extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'E', dependsOn: ['D'] })
-class E extends OmniUnit {}
+class E extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'F', requires: ['G'] })
-class F extends OmniUnit {}
+class F extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'G' })
-class G extends OmniUnit {}
+class G extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'X', requires: ['Y'] })
-class X extends OmniUnit {}
+class X extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'Y', requires: ['X'] })
-class Y extends OmniUnit {}
+class Y extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'H', dependsOn: ['H'] })
-class H extends OmniUnit {}
+class H extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'I', dependsOn: ['J'] })
-class I extends OmniUnit {}
+class I extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'J', dependsOn: ['K'] })
-class J extends OmniUnit {}
+class J extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'K', dependsOn: ['I'] })
-class K extends OmniUnit {}
+class K extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'L' })
-class L extends OmniUnit {}
+class L extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'M', dependsOn: ['N'] })
-class M extends OmniUnit {}
+class M extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'N', dependsOn: ['O'] })
-class N extends OmniUnit {}
+class N extends OmniUnit<UnitArgs> {}
 
 @manifest({ name: 'P' })
-class P extends OmniUnit {}
+class P extends OmniUnit<UnitArgs> {}
 
 test('resolves simple dependency', () => {
 	const Kernel = new OmniKernel([A, B]); // Register units with dependencies
@@ -116,13 +116,13 @@ test('handles mutual requires without creating hard dependency cycles', () => {
 test('includes required modules in dependency closure without ordering constraints', () => {
 	// Create a scenario where A dependsOn B, and C requires B
 	@manifest({ name: 'A', dependsOn: ['B'] })
-	class A extends OmniUnit {}
+	class A extends OmniUnit<UnitArgs> {}
 
 	@manifest({ name: 'B' })
-	class B extends OmniUnit {}
+	class B extends OmniUnit<UnitArgs> {}
 
 	@manifest({ name: 'C', requires: ['B'] })
-	class C extends OmniUnit {}
+	class C extends OmniUnit<UnitArgs> {}
 
 	const Kernel = new OmniKernel([A, B, C]);
 	const result = depResolver(Kernel['units'], ['A', 'C']);

@@ -1,10 +1,10 @@
-import type { GeneralFunction, Meta } from '@/declarations';
+import type { GeneralUnitArgs, Meta } from '@/declarations';
 import type OmniKernel from '@/omniKernel';
 
 const notInTreeError = (name: string) =>
 	new Error(`[OmniKernel] Cannot get ${name} since the element is not yet in the facade tree.`);
 
-export abstract class OmniFacadeElement {
+export class OmniFacadeElement {
 	// facade tree injections
 	readonly facadeInjections: {
 		facades: Array<Facade> | undefined;
@@ -41,11 +41,11 @@ export abstract class OmniFacadeElement {
 	}
 }
 
-export abstract class OmniUnit {
-	facade: Facade;
+export class OmniUnit<T extends GeneralUnitArgs> {
+	facade: T[0];
 	Kernel: OmniKernel;
-	deps: Record<string, Facade>;
-	constructor(...args: UnitArgs) {
+	deps: T[1];
+	constructor(...args: T) {
 		// 0: facade  1: dependencies 2: Kernel 3: additionalMeta 4. facadeMap
 		this.facade = args[0];
 		this.deps = args[1];

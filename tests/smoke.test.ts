@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { OmniKernel, OmniUnit } from '@';
 
-class Test extends OmniUnit {}
+class Test extends OmniUnit<UnitArgs> {}
 
 test('instantiate OmniKernel', () => {
 	expect(OmniKernel).toBeDefined();
