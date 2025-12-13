@@ -6,23 +6,18 @@ export function traceReference(node: Node, depth = 0): string | null {
 	if (depth > MAX_DEPTH) return null;
 
 	// Handle property access: obj.prop
-	if (Node.isPropertyAccessExpression(node)) {
-		return tracePropertyAccess(node, depth);
-	}
+	if (Node.isPropertyAccessExpression(node)) return tracePropertyAccess(node, depth);
 
 	// Handle identifier: ref
-	if (Node.isIdentifier(node)) {
-		return traceIdentifier(node, depth);
-	}
+	if (Node.isIdentifier(node)) return traceIdentifier(node, depth);
 
 	// Stop at literals/complex expressions
 	if (
 		Node.isObjectLiteralExpression(node) ||
 		Node.isArrayLiteralExpression(node) ||
 		Node.isCallExpression(node)
-	) {
+	)
 		return null;
-	}
 
 	return node.getText();
 }
@@ -64,9 +59,7 @@ function traceIdentifier(node: Identifier, depth: number): string | null {
 			const init = def.getInitializer();
 			if (init) {
 				// Skip object literals at root identifier level
-				if (Node.isObjectLiteralExpression(init)) {
-					return node.getText();
-				}
+				if (Node.isObjectLiteralExpression(init)) return node.getText();
 
 				const traced = traceReference(init, depth + 1);
 				if (traced) return traced;
@@ -74,9 +67,7 @@ function traceIdentifier(node: Identifier, depth: number): string | null {
 		}
 
 		// Handle parameter declarations
-		if (Node.isParameterDeclaration(def)) {
-			return node.getText();
-		}
+		if (Node.isParameterDeclaration(def)) return node.getText();
 	}
 
 	return node.getText();

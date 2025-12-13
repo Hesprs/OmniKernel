@@ -36,13 +36,10 @@ function getStaticValue(node: Node): unknown {
 				let key: string;
 
 				// Handle string/number/computed keys (simplified: assume string literal or identifier)
-				if (nameNode.isKind(SyntaxKind.StringLiteral)) {
-					key = nameNode.getLiteralText();
-				} else if (nameNode.isKind(SyntaxKind.NumericLiteral)) {
-					key = nameNode.getLiteralText();
-				} else if (nameNode.isKind(SyntaxKind.Identifier)) {
-					key = nameNode.getText();
-				} else {
+				if (nameNode.isKind(SyntaxKind.StringLiteral)) key = nameNode.getLiteralText();
+				else if (nameNode.isKind(SyntaxKind.NumericLiteral)) key = nameNode.getLiteralText();
+				else if (nameNode.isKind(SyntaxKind.Identifier)) key = nameNode.getText();
+				else {
 					// Computed property (e.g., [someVar]) — not statically evaluable
 					throw new Error(
 						`Computed property keys are not supported in manifest: ${prop.getText()}`,
@@ -50,13 +47,9 @@ function getStaticValue(node: Node): unknown {
 				}
 
 				const initializer = prop.getInitializer();
-				if (!initializer) {
-					throw new Error(`Missing value for property: ${key}`);
-				}
+				if (!initializer) throw new Error(`Missing value for property: ${key}`);
 				obj[key] = getStaticValue(initializer);
 			} else if (prop.isKind(SyntaxKind.ShorthandPropertyAssignment)) {
-				// { x } → shorthand for { x: x }
-				// But `x` must be a constant in scope — **not safe in decorators**
 				const ident = prop.getNameNode() as Identifier;
 				throw new Error(`Shorthand properties not allowed in manifest: ${ident.getText()}`);
 			} else if (prop.isKind(SyntaxKind.SpreadAssignment)) {
@@ -64,7 +57,6 @@ function getStaticValue(node: Node): unknown {
 				throw new Error(`Spread properties not allowed in manifest: ${prop.getText()}`);
 			}
 		}
-
 		return obj;
 	}
 
