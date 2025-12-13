@@ -25,7 +25,7 @@ test('Runner respects immutable flag and prevents updates', () => {
 	expect(monitoredFunc).toBeCalled();
 	// Capture console.warn calls
 	const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	runner.set(newFunc);
+	runner.set(vi.fn(newFunc));
 	expect(runner.run()).toBe('original'); // Function should not have changed
 	expect(warnSpy).toBeCalled();
 	warnSpy.mockRestore(); // Clean up the spy

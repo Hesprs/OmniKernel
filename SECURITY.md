@@ -1,6 +1,6 @@
 # Security Issues
 
-If you believe you have found a security vulnerability `OmniKernel`, please report it to us through coordinated disclosure. We recommend that you report using the `Security` tab of this project on GitHub.
+If you believe you have found a security vulnerability of `OmniKernel`, please report it to us through coordinated disclosure. We recommend that you report using the `Security` tab of this project on GitHub.
 
 Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.
 

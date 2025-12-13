@@ -1,10 +1,9 @@
-import type { GeneralFunction } from '@/declarations';
 import { OmniFacadeElement } from '@/utilities/baseClasses';
 
-export default class Runner extends OmniFacadeElement {
-	run: GeneralFunction;
+export default class Runner<T extends GeneralFunction> extends OmniFacadeElement {
+	run: T;
 	constructor(
-		func: GeneralFunction,
+		func: T,
 		options?: { immutable?: boolean; silent?: boolean; immediate?: boolean; async?: boolean },
 	) {
 		super();
@@ -17,7 +16,7 @@ export default class Runner extends OmniFacadeElement {
 			}
 		}
 	}
-	set(newFunc: GeneralFunction) {
+	set(newFunc: T) {
 		if (this.meta.immutable) {
 			if (!this.meta.silent) console.warn('[OmniKernel] Runner function cannot be changed.');
 			return;
@@ -25,7 +24,7 @@ export default class Runner extends OmniFacadeElement {
 		this.run = newFunc;
 	}
 
-	facadeOverride = (...args: Array<unknown>) => this.run(...args);
+	facadeOverride: T = ((...args: Parameters<T>) => this.run(...args) as ReturnType<T>) as T;
 	onNormalize = () => this.run;
 
 	meta = {

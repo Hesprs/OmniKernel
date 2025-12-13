@@ -2,8 +2,8 @@ import type {
 	FacadeMap,
 	GeneralArguments,
 	GeneralConstructor,
-	GeneralFunction,
 	GeneralObject,
+	GeneralUnitArgs,
 	labelerResult,
 	Manifest,
 	Meta,
@@ -20,7 +20,7 @@ export default class OmniKernel {
 	// Objects are more optimized for string lookup (although insignificant)
 	private facadeMap: FacadeMap = Object.create(null);
 
-	constructor(toRecord?: Array<GeneralConstructor<OmniUnit>>) {
+	constructor(toRecord?: Array<GeneralConstructor<OmniUnit<GeneralUnitArgs>>>) {
 		if (toRecord)
 			toRecord.forEach(unit => {
 				this.record(unit);
@@ -29,7 +29,7 @@ export default class OmniKernel {
 
 	// #region units
 	private units: Record<string, Unit> = {};
-	record(element: GeneralConstructor<OmniUnit>) {
+	record(element: GeneralConstructor<OmniUnit<GeneralUnitArgs>>) {
 		const manifest = getManifest(element) as Manifest;
 		if (!manifest)
 			throw new Error(
@@ -73,7 +73,7 @@ export default class OmniKernel {
 	// #endregion ===============================================================
 
 	// #region Register
-	register(toRegister: unknown, baseFacade: Facade, additionalMeta?: Meta) {
+	register(toRegister: unknown, baseFacade: GeneralFunction, additionalMeta?: Meta) {
 		const tokens = tokenizer(toRegister);
 		tokens.forEach(token => {
 			this.registerAt(
@@ -102,7 +102,7 @@ export default class OmniKernel {
 		}
 
 		let callerArgsList: GeneralArguments | undefined;
-		if (toReplace?.meta.caller) {
+		if (toReplace?.meta.storedCall) {
 			const args = facades[0]();
 			callerArgsList = Array.isArray(args) ? args : [args];
 		}
@@ -117,7 +117,7 @@ export default class OmniKernel {
 
 	// #region Register Call
 	// call the facades at given paths
-	registerCall(toRegister: unknown, baseFacade: Facade) {
+	registerCall(toRegister: unknown, baseFacade: GeneralFunction) {
 		const tokens = tokenizer(toRegister);
 		tokens.forEach(token => {
 			const facades = this.walker(token.path, baseFacade);
@@ -133,13 +133,13 @@ export default class OmniKernel {
 		if (toCall) {
 			const argsList = Array.isArray(args) ? args : [args];
 			targetFacade(...argsList);
-		} else this.registerAt(facades, new Store(args), keyName, { caller: true });
+		} else this.registerAt(facades, new Store(args), keyName, { storedCall: true });
 	}
 	// #endregion ===============================================================
 
 	// #region Public Helpers
 	// convert facade to plain object
-	normalize(toNormalize: Facade) {
+	normalize(toNormalize: GeneralFunction) {
 		let self: unknown;
 		const children: GeneralObject = {};
 
@@ -156,7 +156,7 @@ export default class OmniKernel {
 
 		// children
 		Object.keys(toNormalize).forEach(key => {
-			children[key] = this.normalize(toNormalize[key]);
+			children[key] = this.normalize((toNormalize as Facade)[key]);
 		});
 
 		if (Object.keys(children).length === 0) return self;
@@ -164,8 +164,8 @@ export default class OmniKernel {
 		return children;
 	}
 
-	delete(toDelete: Facade) {
-		const realToDelete = this.facadeMap[toDelete.name] as OmniFacadeElement & OmniUnit;
+	delete(toDelete: GeneralFunction) {
+		const realToDelete = this.facadeMap[toDelete.name] as OmniFacadeElement & OmniUnit<GeneralUnitArgs>;
 		if (!realToDelete) return;
 		if (realToDelete.onDisconnected) realToDelete.onDisconnected();
 		if (realToDelete.dispose) realToDelete.dispose();
@@ -186,7 +186,7 @@ export default class OmniKernel {
 		return result;
 	}
 
-	getElementInstance(facade: Facade): OmniFacadeElement | OmniUnit | undefined {
+	getElementInstance(facade: GeneralFunction): OmniFacadeElement | OmniUnit<GeneralUnitArgs> | undefined {
 		return this.facadeMap[facade.name];
 	}
 	// #endregion ===============================================================
@@ -202,8 +202,8 @@ export default class OmniKernel {
 	}
 
 	// walk the tree to return the facades hierarchy
-	private walker(path: Array<string>, baseFacade: Facade) {
-		let currentBranch = baseFacade;
+	private walker(path: Array<string>, baseFacade: GeneralFunction) {
+		let currentBranch = baseFacade as Facade;
 		const pathList: Array<Facade> = [];
 		path.forEach(crumb => {
 			if (!(crumb in currentBranch)) currentBranch[crumb] = facadeFunc(this.facadeMap);
